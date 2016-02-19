@@ -1,6 +1,11 @@
 {% from 'consul/map.jinja' import agent_settings %}
+{% if salt['grains.get']('osarch') == 'amd64' or salt['grains.get']('osarch') == 'x86_64' %}
+{% set osarch = 'amd64' %}
+{% else %}
+{% set osarch = salt['grains.get']('osarch') %}
+{% endif %}
 
-{% set agent_pkg_name = 'consul_' ~ agent_settings.pkg.version ~ '_' ~ salt['grains.get']('kernel')|lower ~ '_' ~ salt['grains.get']('osarch') ~ '.zip' %}
+{% set agent_pkg_name = 'consul_' ~ agent_settings.pkg.version ~ '_' ~ salt['grains.get']('kernel')|lower ~ '_' ~ osarch  ~ '.zip' %}
 {% set ui_pkg_name = 'consul_' ~ agent_settings.pkg.version ~ '_web_ui.zip' %}
 
 

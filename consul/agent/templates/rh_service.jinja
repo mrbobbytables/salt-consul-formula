@@ -23,7 +23,6 @@
 
 #!/bin/sh
 
-
 ### BEGIN INIT INFO
 # Provides:       consul
 # Required-Start: $local_fs $network
@@ -39,72 +38,90 @@ export GOMAXPROCS={{ salt['grains.get']('num_cpus') }}
 NAME=consul
 USER=consul
 LOGFILE={{ render_settings.logfile }}
+LOCKFILE=/var/lock/subsys/$NAME
 PIDFILE={{ render_settings.pidfile }}
 CONFIGDIR={{ agent_settings.opts['config-dir'][0] }}
 DAEMON=/usr/local/bin/$NAME
 DAEMON_ARGS=" agent {{ render_settings.opts|join(' ') }}"
 
 # source function library
-. /lib/lsb/init-functions
+. /etc/rc.d/init.d/functions
 
-if [ -f /etc/default/$NAME ]; then
-  . /etc/default/$NAME
+if [ -f /etc/sysconfig/$NAME ]; then
+  . /etc/sysconfig/$NAME
 fi
 
 if [ ! -x $DAEMON ]; then
-  log_failure_msg "$DAEMON not found or executable"
-  exit 1
+  echo -n "$DAEMON not found or executable"
+  exit 5
 fi
 
 if [ ! -d $CONFIGDIR ]; then
-  log_failure_msg "$CONFIGDIR not configured. Service cannot start."
+  echo -n "$CONFIGDIR not configured. Service cannot start."
   exit 1
 fi
 
 _start() {
+
+  umask 077
+
   mkdir -p $(dirname $PIDFILE)
+
+  touch $PIDFILE
+  chown $USER:$USER $PIDFILE
 
   if [ $LOGFILE != /dev/null ]; then
     touch $LOGFILE
     chown $USER:$USER $LOGFILE
   fi
 
-  log_begin_msg "Starting $NAME: $DAEMON"
+  echo -n "Starting $NAME: $DAEMON"
 
-  start-stop-daemon --start  \
-    --background             \
-    --no-close               \
-    --make-pidfile           \
-    --user=$USER             \
-    --chuid=$USER            \
-    --pidfile=$PIDFILE       \
-    --exec $DAEMON -- $DAEMON_ARGS >> $LOGFILE 2>&1
+  daemon                \
+    --user=$USER        \
+    --pidfile=$PIDFILE  \
+    "{ $DAEMON $DAEMON_ARGS &>> $LOGFILE & } ; echo \$! >| $PIDFILE"
 
-  log_end_msg $?
+  RETVAL=$?
+  if [ $RETVAL -eq 0 ]; then
+    touch $LOCKFILE
+  fi
+
+  echo
+  return $RETVAL
 }
 
 _stop() {
-  log_begin_msg "Stopping $NAME: $DAEMON"
+  echo -n "Stopping $NAME: $DAEMON"
 
-  start-stop-daemon --stop  \
-  --user=$USER              \
-  --pidfile=$PIDFILE        \
-  --retry=INT/30/KILL/5
-
-  log_end_msg $?
+  killproc -p $PIDFILE $DAEMON -INT
+  RETVAL=$?
+  echo
+  if [ $RETVAL -eq 0 ]; then
+    rm -f $LOCKFILE $PIDFILE
+  fi
+    
+  return $RETVAL
 }
 
 _restart() {
   _stop
+  while true; do
+    ss -pl | grep -q -F "((\"$NAME\","
+    if [ $? -ne 0 ]; then
+      break
+    fi
+    sleep 0.2
+  done
   _start
 }
 
 _reload() {
-  log_begin_msg "Reloading $NAME: $DAEMON"
+  echo -n "Reloading $NAME: $DAEMON"
 
   killproc -p $PIDFILE $DAEMON -HUP
 
-  log_end_msg $?
+  echo
 }
 
 _force_reload() {
@@ -112,22 +129,29 @@ _force_reload() {
 }
 
 _status() {
-  status_of_proc -p $PIDFILE $DAEMON $NAME
+  status -p $PIDFILE -l $NAME $DAEMON
+}
+
+_status_q() {
+  _status > /dev/null 2>&1
 }
 
 
 
 case "$1" in
   start)
+   _status_q && exit 0   
     _start
   ;;
   stop)
+    _status_q || exit 0
     _stop
   ;;
   restart)
     _restart
   ;;
   reload)
+    _status_q \| exit 7
     _reload
   ;;
   force-reload)
@@ -138,7 +162,7 @@ case "$1" in
   ;;
   *)
     echo "Usage: service consul {start|stop|restart|reload|force-reload|status}"
-    exit 1
+    exit 2
   ;;
 esac
 

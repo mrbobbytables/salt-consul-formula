@@ -14,10 +14,10 @@
     'mode': '0755' 
     }
   %}
-{% elif service_type == 'sysvinit' %}
+{% elif service_type == 'rh_service' %}
   {% set service_def = {
     'name': '/etc/init.d/consul',
-    'source': 'salt://consul/agent/templates/sysvinit.jinja',
+    'source': 'salt://consul/agent/templates/rh_service.jinja',
     'mode': '0755' 
     }
   %}

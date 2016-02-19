@@ -49,6 +49,11 @@ platforms:
     provisioner:
       salt_install: ppa
 
+  - name: centos-6
+    driver_config:
+      box: bento/centos-6.7 
+      box_url: https://atlas.hashicorp.com/bento/boxes/centos-6.7
+
   - name: centos-7
     driver_config:
       box: centos/7
