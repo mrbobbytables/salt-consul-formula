@@ -1,0 +1,34 @@
+agent:
+  data_dir: /var/lib/consul
+  ui_dir: /usr/share/consul/agent/ui
+  log: true
+  log_dir: /var/log/consul
+  pkg:
+    install: true
+    service: true
+    version: 0.6.3
+  opts:
+    config-dir:
+      - /etc/consul/agent.d
+  config:
+    ui: true
+    data_dir: /var/lib/consul
+    ui_dir: /usr/share/consul/agent/ui
+  services: []
+  checks: []
+ 
+replicate:
+  pkg:
+    install: false
+    version: 0.2.0
+
+template:
+  pkg:
+    install: false
+    service: true
+    version: 0.12.2
+
+envconsul:
+  pkg:
+    install: false
+    version: 0.6.0

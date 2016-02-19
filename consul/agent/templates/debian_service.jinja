@@ -1,0 +1,147 @@
+{%- from 'consul/map.jinja' import agent_settings with context -%}
+{%- set render_settings = { 
+   'opts' : [], 
+   'logfile' : '/dev/null',
+   'pidfile' : '/var/run/consul/consul.pid'
+   }
+-%}
+
+
+{%- for key, value in agent_settings.get('opts').iteritems() -%}
+  {%- for opt in value -%}
+    {%- do render_settings.opts.append('-' ~ key ~ '=' ~ opt) -%}
+  {%- endfor -%}
+{%- endfor -%}
+
+{%- if 'pid-file' in agent_settings.opts -%}
+  {%- do render_settings.update({ 'pidfile' : agent_settings.opts['pid-file'][0] }) -%}
+{%- endif -%}
+
+{%- if agent_settings.log -%}
+{% do render_settings.update({ 'logfile' : agent_settings.log_dir ~ '/agent.log' }) %}
+{%- endif -%} 
+
+#!/bin/sh
+
+set -e
+
+### BEGIN INIT INFO
+# Provides:       consul
+# Required-Start: $local_fs $network
+# Default-Start: 2 3 4 5
+# Default-Stop:  0 1 6
+# Short-Description: Manage the consul agent
+# Description: A tool for Service Discovery and Configuration. 
+### END INIT INFO
+
+export PATH=/sbin:/bin:/usr/sbin:/usr/bin:/usr/local/sbin:/usr/local/bin
+export GOMAXPROCS={{ salt['grains.get']('num_cpus') }}
+
+NAME=consul
+USER=consul
+LOGFILE={{ render_settings.logfile }}
+PIDFILE={{ render_settings.pidfile }}
+CONFIGDIR={{ agent_settings.opts['config-dir'][0] }}
+DAEMON=/usr/local/bin/$NAME
+DAEMON_ARGS=" agent {{ render_settings.opts|join(' ') }}"
+
+# source function library
+. /lib/lsb/init-functions
+
+if [ -f /etc/default/$NAME ]; then
+  . /etc/default/$NAME
+fi
+
+if [ ! -x $DAEMON ]; then
+  log_failure_msg "$DAEMON not found or executable"
+  exit 1
+fi
+
+if [ ! -d $CONFIGDIR ]; then
+  log_failure_msg "$CONFIGDIR not configured. Service cannot start."
+  exit 1
+fi
+
+_start() {
+  mkdir -p $(dirname $PIDFILE)
+
+  if [ $LOGFILE != /dev/null ]; then
+    touch $LOGFILE
+    chown $USER:$USER $LOGFILE
+  fi
+
+  log_begin_msg "Starting $NAME: $DAEMON"
+
+  start-stop-daemon --start  \
+    --background             \
+    --no-close               \
+    --make-pidfile           \
+    --user=$USER             \
+    --chuid=$USER            \
+    --pidfile=$PIDFILE       \
+    --exec $DAEMON -- $DAEMON_ARGS >> $LOGFILE 2>&1
+
+  log_end_msg $?
+}
+
+_stop() {
+  log_begin_msg "Stopping $NAME: $DAEMON"
+
+  start-stop-daemon --stop  \
+  --user=$USER              \
+  --pidfile=$PIDFILE        \
+  --retry=INT/30/KILL/5
+
+  log_end_msg $?
+}
+
+_restart() {
+  _stop
+  _start
+}
+
+_reload() {
+  log_begin_msg "Reloading $NAME: $DAEMON"
+
+  killproc -p $PIDFILE $DAEMON -HUP
+
+  log_end_msg $?
+}
+
+_force_reload() {
+  _restart
+}
+
+_status() {
+  status_of_proc -p $PIDFILE $DAEMON $NAME
+}
+
+
+
+case "$1" in
+  start)
+    _start
+  ;;
+  stop)
+    _stop
+  ;;
+  restart)
+    _restart
+  ;;
+  reload)
+    _reload
+  ;;
+  force-reload)
+    _force_reload
+  ;;
+  status)
+    _status
+  ;;
+  *)
+    echo "Usage: service consul {start|stop|restart|reload|force-reload|status}"
+    exit 1
+  ;;
+esac
+
+exit $?
+

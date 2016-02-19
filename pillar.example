@@ -1,0 +1,39 @@
+consul:
+  lookup:
+    agent:
+      log: true
+      pkg:
+        install: true
+        service: true
+        version: 0.6.3
+      opts:
+        http-port:
+          - 9999
+          
+      config:
+        server: true
+        bootstrap: true
+        bind_addr: 0.0.0.0
+        retry_interval: 30s
+        ports:
+          http: 8500
+      services:
+        -
+          id: webui
+          name: consul-webui
+          tags:
+            - master
+          address: 127.0.0.1
+          port: 8500
+          checks:
+            -
+              http: http://127.0.0.1:8500/ui/
+              interval: 30s
+              timeout: 10s
+      checks:
+        -
+          id: ssh
+          name: ssh local
+          tcp: localhost:22
+          interval: 30s
+          timeout: 10s

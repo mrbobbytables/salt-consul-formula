@@ -1,0 +1,4 @@
+{% from 'consul/map.jinja' import agent_settings with context %}
+{
+  "checks": {{ agent_settings.checks|json }}
+}

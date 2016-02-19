@@ -1,0 +1,65 @@
+---
+driver:
+  name: vagrant
+
+provisioner:
+  name: salt_solo
+  formula: consul
+  salt_install: bootstrap
+  pillars-from-files:
+    consul.sls: pillar.example
+  state_top:
+    base:
+      '*':
+        - consul.agent
+  pillars:
+    top.sls:
+      base:
+        '*':
+          - consul
+
+suites:
+  - name: consul
+
+platforms:
+  - name: debian-wheezy
+    driver_config:
+      box: debian/wheezy64
+      box_url: https://atlas.hashicorp.com/debian/wheezy64
+
+  - name: debian-jessie
+    driver_config:
+      box: debian/jessie64
+      box_url: https://atlas.hashicorp.com/debian/jessie64
+     
+  - name: ubuntu-precise
+    driver_config:
+      box: ubuntu/precise64
+      box_url: https://atlas.hashicorp.com/ubuntu/precise64
+
+  - name: ubuntu-trusty
+    driver_config:
+      box: ubuntu/trusty64
+      box_url: https://atlas.hashicorp.com/ubuntu/trusty64
+
+  - name: ubuntu-vivid
+    driver_config:
+      box: ubuntu/vivid64
+      box_url: https://atlas.hashicorp.com/ubuntu/vivid64
+    provisioner:
+      salt_install: ppa
+
+  - name: centos-7
+    driver_config:
+      box: centos/7
+      box_url: https://atlas.hashicorp.com/centos/7
+
+  - name: oracle-7
+    driver_config:
+      box: oracle-7
+      box_url: http://cloud.terry.im/vagrant/oraclelinux-7-x86_64.box
+
+  - name: suse-13
+    driver_config:
+      box: bento/opensuse-13.2
+      box_url: https://atlas.hashicorp.com/bento/opensuse-13.2

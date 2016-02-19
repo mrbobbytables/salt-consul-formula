@@ -1,0 +1,28 @@
+{% import_yaml 'consul/defaults.yml' as defaults %}
+
+{# if systemd, assume journald will be used for logging unless user overrides #}
+{% if salt['test.provider']('service') == 'systemd' %}
+{% do defaults.agent.update({'log': false }) %}
+{% endif %}
+
+{% set agent_settings = salt['pillar.get']('consul:lookup:agent', default=defaults.agent, merge=True) %}
+
+{# the below logic is to preserve priority of commandline options overriding config options and impacts #}
+{# creation of directories during the agent install. #}
+
+{% set tmp_agent_settings = { 'data_dir' : defaults.agent.config.data_dir, 'ui_dir' : defaults.agent.config.ui_dir} %}
+{% if agent_settings.opts['data-dir'] is defined %}
+{% do tmp_agent_settings.update({ 'data_dir' : agent_settings.opts['data-dir'][0] }) %}
+{% endif %}
+
+{% if agent_settings.opts['ui-dir'] is defined %}
+{% do tmp_agent_settings.update({ 'ui_dir': agent_settings.opts['ui-dir'][0] }) %}
+{% endif %}
+
+{% do agent_settings.update(tmp_agent_settings) %}
+
+
+
+{% set envconsul_settings = salt['pillar.get']('consul:lookup:envconsul', default=defaults.template, merge=True) %}
+{% set replicate_settings = salt['pillar.get']('consul:lookup:replicate', default=defaults.replicate, merge=True) %}
+{% set template_settings = salt['pillar.get']('consul:lookup:template', default=defaults.template, merge=True) %}
