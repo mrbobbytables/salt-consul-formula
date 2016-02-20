@@ -2,10 +2,9 @@
 {%- set render_settings = { 
    'opts' : [], 
    'logfile' : '/dev/null',
-   'pidfile' : '/var/run/consul/consul.pid'
+   'pidfile' : '/var/run/consul.pid'
    }
 -%}
-
 
 {%- for key, value in agent_settings.get('opts').iteritems() -%}
   {%- for opt in value -%}
@@ -51,31 +50,30 @@ if [ -f /etc/sysconfig/$NAME ]; then
   . /etc/sysconfig/$NAME
 fi
 
-if [ ! -x $DAEMON ]; then
-  echo -n "$DAEMON not found or executable"
-  exit 5
-fi
-
-if [ ! -d $CONFIGDIR ]; then
-  echo -n "$CONFIGDIR not configured. Service cannot start."
-  exit 1
-fi
-
 _start() {
 
-  umask 077
+  if [ ! -x $DAEMON ]; then
+    echo -n $"$DAEMON not found or executable"
+    exit 5
+  fi
 
-  mkdir -p $(dirname $PIDFILE)
+  if [ ! -d $CONFIGDIR ]; then
+    echo -n $"$CONFIGDIR not configured. Service cannot start."
+    exit 1
+  fi
+
+  umask 077
 
   touch $PIDFILE
   chown $USER:$USER $PIDFILE
 
   if [ $LOGFILE != /dev/null ]; then
+    mkdir -p $(dirname $LOGFILE)
     touch $LOGFILE
-    chown $USER:$USER $LOGFILE
+    chown -R $USER:$USER $(dirname $LOGFILE)
   fi
 
-  echo -n "Starting $NAME: $DAEMON"
+  echo -n $"Starting $NAME: $DAEMON"
 
   daemon                \
     --user=$USER        \
@@ -92,20 +90,10 @@ _start() {
 }
 
 _stop() {
-  echo -n "Stopping $NAME: $DAEMON"
+  echo -n $"Stopping $NAME: $DAEMON"
 
   killproc -p $PIDFILE $DAEMON -INT
-  RETVAL=$?
-  echo
-  if [ $RETVAL -eq 0 ]; then
-    rm -f $LOCKFILE $PIDFILE
-  fi
-    
-  return $RETVAL
-}
 
-_restart() {
-  _stop
   while true; do
     ss -pl | grep -q -F "((\"$NAME\","
     if [ $? -ne 0 ]; then
@@ -113,11 +101,23 @@ _restart() {
     fi
     sleep 0.2
   done
+
+  RETVAL=$?
+  echo
+  if [ $RETVAL -eq 0 ]; then
+    rm -f $LOCKFILE $PIDFILE
+  fi
+
+  return $RETVAL
+}
+
+_restart() {
+  _stop
   _start
 }
 
 _reload() {
-  echo -n "Reloading $NAME: $DAEMON"
+  echo -n $"Reloading $NAME: $DAEMON"
 
   killproc -p $PIDFILE $DAEMON -HUP
 
@@ -130,6 +130,7 @@ _force_reload() {
 
 _status() {
   status -p $PIDFILE -l $NAME $DAEMON
+  return $?
 }
 
 _status_q() {
@@ -151,7 +152,7 @@ case "$1" in
     _restart
   ;;
   reload)
-    _status_q \| exit 7
+    _status_q || exit 7
     _reload
   ;;
   force-reload)

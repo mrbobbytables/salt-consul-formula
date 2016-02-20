@@ -10,10 +10,9 @@ Group=consul
 ExecStart=/usr/local/bin/consul agent {% for key, value in agent_settings.get("opts").iteritems() -%} 
 {% for opt in value %}-{{ key }}={{ opt }} {% endfor -%} 
 {% endfor %}
-{%- if agent_settings.log == true %}>> {{ agent_settings.log_dir }}/consul_agent.log 2>&1 {% endif %}
-
 
 ExecReload=/bin/kill -HUP $MAINPID
+ExecStop=/bin/kill -INT $MAINPID
 KillMode=process
 Environment=GOMAXPROCS={{ salt['grains.get']('num_cpus') }}
 
