@@ -40,3 +40,9 @@ By default it will only install the consul prereqs (``consul.prereqs``) and the 
 ------------------------
 
 - FILL IN LATER
+
+
+``consul.agent.clean``
+----------------------
+
+- FILL IN LATER
