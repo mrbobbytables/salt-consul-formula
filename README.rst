@@ -4,6 +4,9 @@ Consul
 
 Formula for managing Consul and it's associated applications
 
+REQUIRES SALT VERSION v2015.8.4 OR GREATER
+
+
 Tested with the following platforms:
 
 - FILL IN LATER
@@ -45,9 +48,44 @@ By default it will only install the consul prereqs (``consul.prereqs``) and the 
 ``consul.agent.clean``
 ----------------------
 
-- Requires version v2015.8.4 or greater to function fully
+- FILL IN LATER
 
 ``consul.agent.remove``
 ----------------------
 
-- Requires version v2015.8.4 or greater to function fully
+- FILL IN LATER
+
+
+``consul.template``
+----------------
+
+- FILL IN LATER
+
+
+``consul.template.install``
+------------------------
+
+- FILL IN LATER
+
+
+``consul.template.config``
+-----------------------
+
+- FILL IN LATER
+
+
+``consul.template.service``
+------------------------
+
+- FILL IN LATER
+
+
+``consul.template.clean``
+----------------------
+
+- FILL IN LATER
+
+``consul.template.remove``
+----------------------
+
+- FILL IN LATER

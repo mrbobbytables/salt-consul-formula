@@ -1,13 +1,4 @@
 {% from 'consul/map.jinja' import agent_settings %}
-{% if salt['grains.get']('osarch') == 'amd64' or salt['grains.get']('osarch') == 'x86_64' %}
-{% set osarch = 'amd64' %}
-{% else %}
-{% set osarch = salt['grains.get']('osarch') %}
-{% endif %}
-
-{% set agent_pkg_name = 'consul_' ~ agent_settings.pkg.version ~ '_' ~ salt['grains.get']('kernel')|lower ~ '_' ~ osarch  ~ '.zip' %}
-{% set ui_pkg_name = 'consul_' ~ agent_settings.pkg.version ~ '_web_ui.zip' %}
-
 
 include:
   - consul.prereqs
@@ -42,7 +33,7 @@ create-consul-ui-directory:
     - group: consul
     - makedirs: true
 
-{% if agent_settings.log == true %}
+{% if agent_settings.log %}
 create-consul-log-directory:
   file.directory:
     - name: {{ agent_settings.log_dir }}
@@ -53,8 +44,8 @@ create-consul-log-directory:
 
 download-consul-agent:
   file.managed:
-    - name: /tmp/{{ agent_pkg_name }}
-    - source: https://releases.hashicorp.com/consul/{{ agent_settings.pkg.version }}/{{ agent_pkg_name }}
+    - name: /tmp/{{ agent_settings.pkg.name }}
+    - source: https://releases.hashicorp.com/consul/{{ agent_settings.pkg.version }}/{{ agent_settings.pkg.name }}
     - source_hash: https://releases.hashicorp.com/consul/{{ agent_settings.pkg.version}}/consul_{{ agent_settings.pkg.version }}_SHA256SUMS
     - require:
       - sls: consul.prereqs
@@ -63,7 +54,7 @@ download-consul-agent:
 
 extract-consul-agent:
   cmd.wait:
-    - name: unzip -q -o /tmp/{{ agent_pkg_name }}
+    - name: unzip -q -o /tmp/{{ agent_settings.pkg.name }}
     - cwd: /tmp/
     - watch:
       - file: download-consul-agent
@@ -77,16 +68,9 @@ move-consul-agent-binary:
 
 clean-consul-archive:
   file.absent:
-    - name: /tmp/{{ agent_pkg_name }}
+    - name: /tmp/{{ agent_settings.pkg.name }}
     - watch:
        - file: move-consul-agent-binary
-
-clean-consul-extracted-binary:
-  file.absent:
-    - name: /tmp/consul-{{ agent_settings.pkg.version }}
-    - watch:
-      - file: move-consul-agent-binary
-
 
 symlink-consul-agent-binary:
   file.symlink:
@@ -100,8 +84,8 @@ symlink-consul-agent-binary:
 
 download-consul-ui:
   file.managed:
-    - name: /tmp/{{ ui_pkg_name }}
-    - source: https://releases.hashicorp.com/consul/{{ agent_settings.pkg.version }}/{{ ui_pkg_name }}
+    - name: /tmp/{{ agent_settings.pkg.ui_name }}
+    - source: https://releases.hashicorp.com/consul/{{ agent_settings.pkg.version }}/{{ agent_settings.pkg.ui_name }}
     - source_hash: https://releases.hashicorp.com/consul/{{ agent_settings.pkg.version}}/consul_{{ agent_settings.pkg.version }}_SHA256SUMS
     - unless:
       - test -d {{ agent_settings.ui_dir }}-{{ agent_settings.pkg.version }}
@@ -110,7 +94,7 @@ download-consul-ui:
 
 extract-consul-ui:
   cmd.wait:
-    - name: unzip -q -o /tmp/{{ ui_pkg_name }}
+    - name: unzip -q -o /tmp/{{ agent_settings.pkg.ui_name }}
     - cwd: /tmp/
     - watch:
       - file: download-consul-ui
@@ -132,7 +116,7 @@ modify-consul-ui-dir-permissions:
 
 clean-consul-ui-archive:
   file.absent:
-    - name: /tmp/{{ ui_pkg_name }}
+    - name: /tmp/{{ agent_settings.pkg.ui_name }}
     - watch:
        - file: symlink-consul-ui
 

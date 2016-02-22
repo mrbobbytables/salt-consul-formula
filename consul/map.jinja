@@ -1,28 +1,67 @@
 {% import_yaml 'consul/defaults.yml' as defaults %}
+{% import_yaml 'consul/providermap.yml' as providermap %}
+{% set provider = salt['test.provider']('service')|lower %}
 
-{# if systemd, assume journald will be used for logging unless user overrides #}
-{% if salt['test.provider']('service') == 'systemd' %}
-{% do defaults.agent.update({'log': false }) %}
+{# set service information based on provider #}
+
+{% if provider == 'debian_service' %}
+  {% do salt['slsutil.update'](defaults, providermap.debian_service) %}
+{$ elif provider == 'rh_service' %}
+  {% do salt['slsutil.update'](defaults, providermap.rh_service) %}
+{% elif provider == 'systemd' %}
+  {% do salt['slsutil.update'](defaults, providermap.systemd) %}
+{% elif provider == 'upstart' %}
+  {% do salt['slsutil.update'](defaults, providermap.upstart) %}
 {% endif %}
 
-{% set agent_settings = salt['pillar.get']('consul:lookup:agent', default=defaults.agent, merge=True) %}
+
+{# set osarch for use with producing download links #}
+{% if salt['grains.get']('osarch') == 'amd64' or salt['grains.get']('osarch') == 'x86_64' %}
+  {% set osarch = 'amd64' %}
+{% else %}
+  { set osarch = 'salt['grains.get']('osarch') %}
+{% endif %}
+
+
+{#---------- Begin Agent Config ----------#}
 
 {# the below logic is to preserve priority of commandline options overriding config options and impacts #}
 {# creation of directories during the agent install. #}
 
-{% set tmp_agent_settings = { 'data_dir' : defaults.agent.config.data_dir, 'ui_dir' : defaults.agent.config.ui_dir} %}
+{% set agent_settings = salt['pillar.get']('consul:lookup:agent', default=defaults.agent, merge=True) %}
+
+{% set tmp_agent_settings = { 
+  'data_dir' : defaults.agent.config.data_dir, 
+  'ui_dir' : defaults.agent.config.ui_dir, 
+  'pkg': {
+     'name': 'consul_' ~ agent_settings.pkg.version ~ '_' ~ salt['grains.get']('kernel')|lower ~ '_' ~ osarch  ~ '.zip',
+     'ui_name': 'consul_' ~ agent_settings.pkg.version ~ '_web_ui.zip'
+  }
+} %}
+
 {% if agent_settings.opts['data-dir'] is defined %}
-{% do tmp_agent_settings.update({ 'data_dir' : agent_settings.opts['data-dir'][0] }) %}
+  {% do tmp_agent_settings.update({ 'data_dir' : agent_settings.opts['data-dir'][0] }) %}
 {% endif %}
 
 {% if agent_settings.opts['ui-dir'] is defined %}
-{% do tmp_agent_settings.update({ 'ui_dir': agent_settings.opts['ui-dir'][0] }) %}
+  {% do tmp_agent_settings.update({ 'ui_dir': agent_settings.opts['ui-dir'][0] }) %}
 {% endif %}
 
-{% do agent_settings.update(tmp_agent_settings) %}
+
+{# Ensures logging is disabled on system or if no path is defined #}
+{% if provider == 'systemd' or agent_settings.log_dir == None %}
+  {% do tmp_agent_settings.update({ 'log': False }) %}
+{% endif %}
+
+
+{% do salt['slsutil.update'](agent_settings, tmp_agent_settings) %}
+
+
+{#---------- End Agent Config ----------#}
 
 
 
 {% set envconsul_settings = salt['pillar.get']('consul:lookup:envconsul', default=defaults.template, merge=True) %}
 {% set replicate_settings = salt['pillar.get']('consul:lookup:replicate', default=defaults.replicate, merge=True) %}
 {% set template_settings = salt['pillar.get']('consul:lookup:template', default=defaults.template, merge=True) %}
+

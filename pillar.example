@@ -27,7 +27,7 @@ consul:
           port: 8500
           checks:
             -
-              http: http://127.0.0.1:8500/ui/
+              http: http://127.0.0.1:9999/ui/
               interval: 30s
               timeout: 10s
       checks:

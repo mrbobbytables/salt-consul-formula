@@ -1,11 +1,13 @@
 ---
 driver:
   name: vagrant
+  vagrantfile_erb: Vagrantfile_local.erb
 
 provisioner:
   name: salt_solo
   formula: consul
   salt_install: bootstrap
+  salt_bootstrap_options: -P git v2015.8.7
   pillars-from-files:
     consul.sls: pillar.example
   state_top:
@@ -26,9 +28,6 @@ platforms:
     driver_config:
       box: debian/wheezy64
       box_url: https://atlas.hashicorp.com/debian/wheezy64
-    provisioner:
-      salt_install: bootstrap
-      salt_bootstrap_options: -P git v2015.8.7
 
   - name: debian-jessie
     driver_config:
@@ -49,16 +48,11 @@ platforms:
     driver_config:
       box: ubuntu/vivid64
       box_url: https://atlas.hashicorp.com/ubuntu/vivid64
-    provisioner:
-      salt_install: ppa
 
   - name: centos-6
     driver_config:
       box: bento/centos-6.7 
       box_url: https://atlas.hashicorp.com/bento/boxes/centos-6.7
-    provisioner:
-      salt_install: bootstrap
-      salt_bootstrap_options: -P git v2015.8.7
 
   - name: centos-7
     driver_config:

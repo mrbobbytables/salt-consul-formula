@@ -16,17 +16,25 @@ agent:
     ui_dir: /usr/share/consul/agent/ui
   services: []
   checks: []
- 
-replicate:
-  pkg:
-    install: false
-    version: 0.2.0
 
 template:
+  log: true
+  log_dir: /var/log/consul
+  templates_dir: /usr/share/consul/templates
   pkg:
     install: false
     service: true
     version: 0.12.2
+  opts:
+    config:
+      /etc/consul/template.d
+
+
+
+replicate:
+  pkg:
+    install: false
+    version: 0.2.0
 
 envconsul:
   pkg:

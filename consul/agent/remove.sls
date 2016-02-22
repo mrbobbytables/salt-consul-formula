@@ -75,9 +75,7 @@ def run():
 
         for d in dir_list:
             if re.match('^' + ui_prefix + '-\d+\.\d+\.\d+', d):
-                dir_path = os.path.join(ui_dir, d)
-                if os.path.isdir(dir_path):
-                    rem_list.append(dir_path)
+                rem_list.append(os.path.join(ui_dir, d))
 
 #--------------------#
 
@@ -87,20 +85,20 @@ def run():
 
     for f in file_list:
         if re.match('^consul-\d+\.\d+.\d+', f):
-            file_path = os.path.join(bin_dir, f)
-            if os.path.isfile(file_path):
-                rem_list.append(file_path)
+            rem_list.append(os.path.join(bin_dir, f))
 
 
+# perform file / dir check before attempting to remove
     for rem in rem_list:
-        config['remove-consul-agent-' + rem] = {
-                'file.absent': [
-                        { 'name': rem },
-                        { 'watch': [
-                                { 'service': 'stop-consul-agent-service' }
-                        ]}
-                ]
-        }
+        if os.path.isfile(rem) or os.path.isdir(rem):
+            config['remove-consul-agent-' + rem] = {
+                    'file.absent': [
+                            { 'name': rem },
+                            { 'watch': [
+                                    { 'service': 'stop-consul-agent-service' }
+                           ]}
+                    ]
+             }
 
 
     return config
