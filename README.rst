@@ -45,4 +45,9 @@ By default it will only install the consul prereqs (``consul.prereqs``) and the 
 ``consul.agent.clean``
 ----------------------
 
-- FILL IN LATER
+- Requires version v2015.8.4 or greater to function fully
+
+``consul.agent.remove``
+----------------------
+
+- Requires version v2015.8.4 or greater to function fully

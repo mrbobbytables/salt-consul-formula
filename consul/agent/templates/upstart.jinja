@@ -5,6 +5,7 @@ start on (filesystem and net-device-up !IFACE=lo)
 stop on runlevel [!2345]
 
 respawn
+kill signal SIGINT
 setuid consul
 setgid consul
 
