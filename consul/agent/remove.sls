@@ -66,6 +66,7 @@ def run():
 
         rem_list.append(agent_settings['opts']['config-dir'][0])
         rem_list.append(agent_settings['data_dir'])
+        rem_list.append(agent_settings['script_dir'])
         rem_list.append(agent_settings['ui_dir'])
 
         ui_prefix = os.path.basename(agent_settings['ui_dir'])

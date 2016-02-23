@@ -14,6 +14,7 @@ provisioner:
     base:
       '*':
         - consul.agent
+        - consul.template
   pillars:
     top.sls:
       base:

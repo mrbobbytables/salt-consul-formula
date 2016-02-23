@@ -7,16 +7,16 @@ consul:
         service: true
         version: 0.6.3
       opts:
+        server:
         http-port:
           - 9999
           
       config:
-        server: true
         bootstrap: true
         bind_addr: 0.0.0.0
         retry_interval: 30s
         ports:
-          http: 8500
+          http: 9999
       services:
         -
           id: webui
@@ -37,3 +37,16 @@ consul:
           tcp: localhost:22
           interval: 30s
           timeout: 10s
+
+
+
+    template:
+      log: true
+      pkg:
+        install: true
+        service: true
+      opts:
+        consul:
+         - 127.0.0.1
+      config:
+        log_level: debug

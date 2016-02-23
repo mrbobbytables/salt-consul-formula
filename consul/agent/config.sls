@@ -1,5 +1,24 @@
 {% from 'consul/map.jinja' import agent_settings with context %}
 
+include:
+  - consul.prereqs
+
+{% for script in agent_settings.scripts %}
+sync-consul-agent-script-{{ script.name }}:
+  file.managed:
+    - name: {{ agent_settings.scripts_dir }}/{{ script.name }}
+    - source: {{ script.source }}
+    - makedirs: true
+    - user: consul
+    - agent: consul
+    - require:
+      - sls: consul.prereqs
+{% if 'template' in script %}
+    - template: {{ script.template }}
+{% endif %}
+{% endfor %}
+
+
 config-consul-agent:
   file.managed:
     - name: {{ agent_settings.opts['config-dir'][0] }}/config.json

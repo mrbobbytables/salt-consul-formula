@@ -7,10 +7,14 @@
 -%}
 
 
-{%- for key, value in agent_settings.get('opts').iteritems() -%}
-  {%- for opt in value -%}
-    {%- do render_settings.opts.append('-' ~ key ~ '=' ~ opt) -%}
-  {%- endfor -%}
+{%- for key, value in agent_settings.get('opts').iteritems() -%} 
+  {%- if value is none -%} 
+    {%- do render_settings.opts.append('-' ~ key) -%} 
+  {%- else -%}
+    {%- for opt in value -%} 
+      {%- do render_settings.opts.append('-' ~ key ~ '=' ~ opt) -%} 
+    {%- endfor -%} 
+  {%- endif -%} 
 {%- endfor -%}
 
 {%- if 'pid-file' in agent_settings.opts -%}

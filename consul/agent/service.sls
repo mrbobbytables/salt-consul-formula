@@ -1,7 +1,9 @@
 {% from 'consul/map.jinja' import agent_settings with context %}
 
-{% if agent_settings.service_def is defined and agent_settings.pkg.service == true %}
+include:
+  - consul.prereqs
 
+{% if agent_settings.service_def is defined and agent_settings.pkg.service == true %}
 {% if salt['test.provider']('service') == 'systemd' %}
 
 consul-agent-systemd-unit-helper:

@@ -1,13 +1,13 @@
-{%- from 'consul/map.jinja' import agent_settings with context -%}
+{%- from 'consul/map.jinja' import template_settings with context -%}
 [Unit]
-Description=Consul Agent
+Description=Consul Template
 Wants=basic.target
 After=basic.target network.target
 
 [Service]
 User=consul
 Group=consul
-ExecStart=/usr/local/bin/consul agent {% for key, value in agent_settings.get("opts").iteritems() -%} 
+ExecStart=/usr/local/bin/consul agent {% for key, value in template_settings.get("opts").iteritems() -%} 
 {% if value is none %}-{{ key }} {% else -%}
 {% for opt in value %}-{{ key }}={{ opt }} {% endfor %}{% endif -%}
 {% endfor %}

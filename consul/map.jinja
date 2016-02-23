@@ -1,12 +1,13 @@
 {% import_yaml 'consul/defaults.yml' as defaults %}
 {% import_yaml 'consul/providermap.yml' as providermap %}
 {% set provider = salt['test.provider']('service')|lower %}
+{% set release_url = 'https://releases.hashicorp.com' %}
 
 {# set service information based on provider #}
 
 {% if provider == 'debian_service' %}
   {% do salt['slsutil.update'](defaults, providermap.debian_service) %}
-{$ elif provider == 'rh_service' %}
+{% elif provider == 'rh_service' %}
   {% do salt['slsutil.update'](defaults, providermap.rh_service) %}
 {% elif provider == 'systemd' %}
   {% do salt['slsutil.update'](defaults, providermap.systemd) %}
@@ -29,13 +30,21 @@
 {# creation of directories during the agent install. #}
 
 {% set agent_settings = salt['pillar.get']('consul:lookup:agent', default=defaults.agent, merge=True) %}
+{% set agent_pkg_name = 'consul_' ~ agent_settings.pkg.version ~ '_' ~ salt['grains.get']('kernel')|lower ~ '_' ~ osarch  ~ '.zip' %}
+{% set agent_ui_name = 'consul_' ~ agent_settings.pkg.version ~ '_web_ui.zip' %}
+{% set agent_hashes = 'consul_' ~ agent_settings.pkg.version ~ '_SHA256SUMS' %}
 
-{% set tmp_agent_settings = { 
-  'data_dir' : defaults.agent.config.data_dir, 
-  'ui_dir' : defaults.agent.config.ui_dir, 
+
+{% set tmp_agent_settings = {
+  'data_dir': defaults.agent.config.data_dir,
+  'ui_dir': defaults.agent.config.ui_dir,
   'pkg': {
-     'name': 'consul_' ~ agent_settings.pkg.version ~ '_' ~ salt['grains.get']('kernel')|lower ~ '_' ~ osarch  ~ '.zip',
-     'ui_name': 'consul_' ~ agent_settings.pkg.version ~ '_web_ui.zip'
+     'agent_name': agent_pkg_name,
+     'agent_uri': release_url ~ '/consul/' ~ agent_settings.pkg.version ~ '/' ~ agent_pkg_name,
+     'agent_hash': release_url ~ '/consul/' ~ agent_settings.pkg.version ~ '/' ~ agent_hashes,
+     'ui_name': agent_ui_name,
+     'ui_uri': release_url ~ '/consul/' ~ agent_settings.pkg.version ~ '/' ~ agent_ui_name,
+     'ui_hash': release_url ~ '/consul/' ~ agent_settings.pkg.version ~ '/' ~ agent_hashes
   }
 } %}
 
@@ -49,7 +58,7 @@
 
 
 {# Ensures logging is disabled on system or if no path is defined #}
-{% if provider == 'systemd' or agent_settings.log_dir == None %}
+{% if provider == 'systemd' or agent_settings.log_dir is none %}
   {% do tmp_agent_settings.update({ 'log': False }) %}
 {% endif %}
 
@@ -58,10 +67,31 @@
 
 
 {#---------- End Agent Config ----------#}
+{#---------- Begin Template Config ----------#}
+
+{% set template_settings = salt['pillar.get']('consul:lookup:template', default=defaults.template, merge=True) %}
+{% set template_pkg_name = 'consul-template_' ~ template_settings.pkg.version ~ '_' ~ salt['grains.get']('kernel')|lower ~ '_' ~ osarch  ~ '.zip' %}
+{% set template_pkg_hash = 'consul-template_' ~ template_settings.pkg.version ~ '_SHA256SUMS' %}
+
+{% set tmp_template_settings = {
+    'pkg': {
+      'template_name': template_pkg_name,
+      'template_uri' : release_url ~ '/consul-template/' ~ template_settings.pkg.version ~ '/' ~ template_pkg_name,
+      'template_hash': release_url ~ '/consul-template/' ~ template_settings.pkg.version ~ '/' ~ template_pkg_hash
+    }
+} %}
+
+{# Ensures logging is disabled on system or if no path is defined #}
+{% if provider == 'systemd' or template_settings.log_dir is none %}
+  {% do tmp_template_settings.update({ 'log': False }) %}
+{% endif %}
 
 
+{% do salt['slsutil.update'](template_settings, tmp_template_settings) %}
+
+
+{#---------- End Template Config ----------#}
 
 {% set envconsul_settings = salt['pillar.get']('consul:lookup:envconsul', default=defaults.template, merge=True) %}
 {% set replicate_settings = salt['pillar.get']('consul:lookup:replicate', default=defaults.replicate, merge=True) %}
-{% set template_settings = salt['pillar.get']('consul:lookup:template', default=defaults.template, merge=True) %}
 

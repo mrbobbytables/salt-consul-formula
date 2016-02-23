@@ -1,4 +1,5 @@
-{% from 'consul/map.jinja' import agent_settings %}
+{% from 'consul/map.jinja' import agent_settings with context %}
+
 
 include:
   - consul.prereqs
@@ -26,6 +27,7 @@ create-consul-agent-data-directory:
     - group: consul
     - makedirs: true
 
+{#  the parent directory is created as the actual ui directory will be symlinked #}
 create-consul-ui-directory:
   file.directory:
     - name: {{ salt['file.dirname'](agent_settings.ui_dir) }}
@@ -33,8 +35,16 @@ create-consul-ui-directory:
     - group: consul
     - makedirs: true
 
+create-consul-scripts-directory:
+  file.directory:
+    - name: {{ agent_settings.scripts_dir }}
+    - user: consul
+    - group: consul
+    - makedirs: true
+
+
 {% if agent_settings.log %}
-create-consul-log-directory:
+create-consul-agent-log-directory:
   file.directory:
     - name: {{ agent_settings.log_dir }}
     - user: consul
@@ -44,9 +54,9 @@ create-consul-log-directory:
 
 download-consul-agent:
   file.managed:
-    - name: /tmp/{{ agent_settings.pkg.name }}
-    - source: https://releases.hashicorp.com/consul/{{ agent_settings.pkg.version }}/{{ agent_settings.pkg.name }}
-    - source_hash: https://releases.hashicorp.com/consul/{{ agent_settings.pkg.version}}/consul_{{ agent_settings.pkg.version }}_SHA256SUMS
+    - name: /tmp/{{ agent_settings.pkg.agent_name }}
+    - source: {{ agent_settings.pkg.agent_uri }}
+    - source_hash: {{ agent_settings.pkg.agent_hash }}
     - require:
       - sls: consul.prereqs
     - unless:
@@ -54,7 +64,7 @@ download-consul-agent:
 
 extract-consul-agent:
   cmd.wait:
-    - name: unzip -q -o /tmp/{{ agent_settings.pkg.name }}
+    - name: unzip -q -o /tmp/{{ agent_settings.pkg.agent_name }}
     - cwd: /tmp/
     - watch:
       - file: download-consul-agent
@@ -68,7 +78,7 @@ move-consul-agent-binary:
 
 clean-consul-archive:
   file.absent:
-    - name: /tmp/{{ agent_settings.pkg.name }}
+    - name: /tmp/{{ salt['file.basename'](agent_settings.pkg.agent_name) }}
     - watch:
        - file: move-consul-agent-binary
 
@@ -85,8 +95,8 @@ symlink-consul-agent-binary:
 download-consul-ui:
   file.managed:
     - name: /tmp/{{ agent_settings.pkg.ui_name }}
-    - source: https://releases.hashicorp.com/consul/{{ agent_settings.pkg.version }}/{{ agent_settings.pkg.ui_name }}
-    - source_hash: https://releases.hashicorp.com/consul/{{ agent_settings.pkg.version}}/consul_{{ agent_settings.pkg.version }}_SHA256SUMS
+    - source: {{ agent_settings.pkg.ui_uri }}
+    - source_hash: {{ agent_settings.pkg.ui_hash }}
     - unless:
       - test -d {{ agent_settings.ui_dir }}-{{ agent_settings.pkg.version }}
     - require:
@@ -116,7 +126,7 @@ modify-consul-ui-dir-permissions:
 
 clean-consul-ui-archive:
   file.absent:
-    - name: /tmp/{{ agent_settings.pkg.ui_name }}
+    - name: /tmp/{{ salt['file.basename'](agent_settings.pkg.ui_name) }}
     - watch:
        - file: symlink-consul-ui
 
@@ -132,4 +142,3 @@ symlink-consul-ui:
        - test -d {{ agent_settings.ui_dir }}-{{ agent_settings.pkg.version }}
     - unless:
        - readlink {{ agent_settings.ui_dir }} | grep -q {{ agent_settings.pkg.version }}
-

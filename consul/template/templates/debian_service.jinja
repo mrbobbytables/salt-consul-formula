@@ -2,18 +2,19 @@
 {%- set render_settings = { 
    'opts' : [], 
    'logfile' : '/dev/null',
-   'pidfile' : '/var/run/consul.pid'
+   'pidfile' : '/var/run/consul/consul.pid'
    }
 -%}
 
-{%- for key, value in agent_settings.get('opts').iteritems() -%}
-  {%- if value is none -%}
-    {%- do render_settings.opts.append('-' ~ key) -%}
+
+{%- for key, value in agent_settings.get('opts').iteritems() -%} 
+  {%- if value is none -%} 
+    {%- do render_settings.opts.append('-' ~ key) -%} 
   {%- else -%}
-    {%- for opt in value -%}
-      {%- do render_settings.opts.append('-' ~ key ~ '=' ~ opt) -%}
-    {%- endfor -%}
-  {%- endif -%}
+    {%- for opt in value -%} 
+      {%- do render_settings.opts.append('-' ~ key ~ '=' ~ opt) -%} 
+    {%- endfor -%} 
+  {%- endif -%} 
 {%- endfor -%}
 
 {%- if 'pid-file' in agent_settings.opts -%}
@@ -25,6 +26,7 @@
 {%- endif -%} 
 
 #!/bin/sh
+
 
 ### BEGIN INIT INFO
 # Provides:       consul
@@ -38,81 +40,62 @@
 export PATH=/sbin:/bin:/usr/sbin:/usr/bin:/usr/local/sbin:/usr/local/bin
 export GOMAXPROCS={{ salt['grains.get']('num_cpus') }}
 
-NAME=consul
+NAME=consul-template
 USER=consul
 LOGFILE={{ render_settings.logfile }}
-LOCKFILE=/var/lock/subsys/$NAME
 PIDFILE={{ render_settings.pidfile }}
 CONFIGDIR={{ agent_settings.opts['config-dir'][0] }}
 DAEMON=/usr/local/bin/$NAME
 DAEMON_ARGS=" agent {{ render_settings.opts|join(' ') }}"
 
 # source function library
-. /etc/rc.d/init.d/functions
+. /lib/lsb/init-functions
 
-if [ -f /etc/sysconfig/$NAME ]; then
-  . /etc/sysconfig/$NAME
+if [ -f /etc/default/$NAME ]; then
+  . /etc/default/$NAME
+fi
+
+if [ ! -x $DAEMON ]; then
+  log_failure_msg "$DAEMON not found or executable"
+  exit 1
+fi
+
+if [ ! -d $CONFIGDIR ]; then
+  log_failure_msg "$CONFIGDIR not configured. Service cannot start."
+  exit 1
 fi
 
 _start() {
-
-  if [ ! -x $DAEMON ]; then
-    echo -n $"$DAEMON not found or executable"
-    exit 5
-  fi
-
-  if [ ! -d $CONFIGDIR ]; then
-    echo -n $"$CONFIGDIR not configured. Service cannot start."
-    exit 1
-  fi
-
-  umask 077
-
-  touch $PIDFILE
-  chown $USER:$USER $PIDFILE
+  mkdir -p $(dirname $PIDFILE)
 
   if [ $LOGFILE != /dev/null ]; then
-    mkdir -p $(dirname $LOGFILE)
     touch $LOGFILE
-    chown -R $USER:$USER $(dirname $LOGFILE)
+    chown $USER:$USER $LOGFILE
   fi
 
-  echo -n $"Starting $NAME: $DAEMON"
+  log_begin_msg "Starting $NAME: $DAEMON"
 
-  daemon                \
-    --user=$USER        \
-    --pidfile=$PIDFILE  \
-    "{ $DAEMON $DAEMON_ARGS &>> $LOGFILE & } ; echo \$! >| $PIDFILE"
+  start-stop-daemon --start  \
+    --background             \
+    --no-close               \
+    --make-pidfile           \
+    --user=$USER             \
+    --chuid=$USER            \
+    --pidfile=$PIDFILE       \
+    --exec $DAEMON -- $DAEMON_ARGS >> $LOGFILE 2>&1
 
-  RETVAL=$?
-  if [ $RETVAL -eq 0 ]; then
-    touch $LOCKFILE
-  fi
-
-  echo
-  return $RETVAL
+  log_end_msg $?
 }
 
 _stop() {
-  echo -n $"Stopping $NAME: $DAEMON"
+  log_begin_msg "Stopping $NAME: $DAEMON"
 
-  killproc -p $PIDFILE $DAEMON -INT
+  start-stop-daemon --stop  \
+  --user=$USER              \
+  --pidfile=$PIDFILE        \
+  --retry=INT/30/KILL/5
 
-  while true; do
-    ss -pl | grep -q -F "((\"$NAME\","
-    if [ $? -ne 0 ]; then
-      break
-    fi
-    sleep 0.2
-  done
-
-  RETVAL=$?
-  echo
-  if [ $RETVAL -eq 0 ]; then
-    rm -f $LOCKFILE $PIDFILE
-  fi
-
-  return $RETVAL
+  log_end_msg $?
 }
 
 _restart() {
@@ -121,11 +104,11 @@ _restart() {
 }
 
 _reload() {
-  echo -n $"Reloading $NAME: $DAEMON"
+  log_begin_msg "Reloading $NAME: $DAEMON"
 
   killproc -p $PIDFILE $DAEMON -HUP
 
-  echo
+  log_end_msg $?
 }
 
 _force_reload() {
@@ -133,30 +116,22 @@ _force_reload() {
 }
 
 _status() {
-  status -p $PIDFILE -l $NAME $DAEMON
-  return $?
-}
-
-_status_q() {
-  _status > /dev/null 2>&1
+  status_of_proc -p $PIDFILE $DAEMON $NAME
 }
 
 
 
 case "$1" in
   start)
-   _status_q && exit 0   
     _start
   ;;
   stop)
-    _status_q || exit 0
     _stop
   ;;
   restart)
     _restart
   ;;
   reload)
-    _status_q || exit 7
     _reload
   ;;
   force-reload)
@@ -167,7 +142,7 @@ case "$1" in
   ;;
   *)
     echo "Usage: service consul {start|stop|restart|reload|force-reload|status}"
-    exit 2
+    exit 1
   ;;
 esac
 

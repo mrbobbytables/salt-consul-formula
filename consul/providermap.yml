@@ -1,11 +1,19 @@
-uptart:
+debian_service:
   agent:
     log: true
     log_dir: /var/log/consul
     service_def:
-      name: /etc/init/consul.conf
-      source: salt://consul/agent/templates/upstart.jinja
-      mode: '0644'
+      name: /etc/init.d/consul
+      source: salt://consul/agent/templates/debian_service.jinja
+      mode: '0755'
+  template:
+    log: true
+    log_dir: /var/log/consul
+    service_def:
+      name: /etc/init.d/consul-template
+      source: salt://consul/template/templates/debian_service.jinja
+      mode: '0755'
+
 
 rh_service:
   agent:
@@ -15,15 +23,14 @@ rh_service:
       name: /etc/init.d/consul
       source: salt://consul/agent/templates/rh_service.jinja
       mode: '0755'
-
-debian_service:
-  agent:
+  template:
     log: true
     log_dir: /var/log/consul
     service_def:
-      name: /etc/init.d/consul
-      source: salt://consul/agent/templates/debian_service.jinja
+      name: /etc/init.d/consul-template
+      source: salt://consul/template/templates/rh_service.jinja
       mode: '0755'
+
 
 systemd:
   agent:
@@ -32,4 +39,28 @@ systemd:
     service_def:
       name: /etc/systemd/system/consul.service
       source: salt://consul/agent/templates/systemd.jinja
+      mode: '0644'
+  template:
+    log: false
+    log_dir:
+    service_def:
+      name: /etc/systemd/system/consul-template.service
+      source: salt://consul/template/templates/systemd.jinja
+      mode: '0644'
+
+
+upstart:
+  agent:
+    log: true
+    log_dir: /var/log/consul
+    service_def:
+      name: /etc/init/consul.conf
+      source: salt://consul/agent/templates/upstart.jinja
+      mode: '0644'
+  template:
+    log: true
+    log_dir: /var/log/consul
+    service_def:
+      name: /etc/init/consul-template.conf
+      source: salt://consul/template/templates/upstart.jinja
       mode: '0644'
