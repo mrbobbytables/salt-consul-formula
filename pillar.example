@@ -2,6 +2,16 @@ consul:
   lookup:
     agent:
       log: true
+      pkg:
+        install: true
+        service: true
+        version: 0.6.3
+      scripts:
+        -
+          source: salt://test-data/scripts/test1.sh
+        -
+          name: test2
+          source: salt://test-data/scripts/test2.sh
       ssl: 
         enabled: true
         dir: /etc/consul/ssl
@@ -11,10 +21,6 @@ consul:
           source: salt://test-data/ssl/consul.cert
         key:
           source: salt://test-data/ssl/consul.key
-      pkg:
-        install: true
-        service: true
-        version: 0.6.3
       opts:
         server: 
       config:

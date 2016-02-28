@@ -1,6 +1,9 @@
+require 'deep_merge'
+require 'json'
+require 'json_spec'
+require 'rspec'
 require 'serverspec'
 require 'yaml'
-require 'deep_merge'
 
 set :backend, :exec
 
@@ -175,6 +178,103 @@ if agent_settings['log'] and agent_settings['log_dir']
     it { should be_owned_by 'consul' }
     it { should be_grouped_into 'consul' }
   end
+
+  describe file(File.join(agent_settings['log_dir'], 'agent.log')) do
+    it { should exist }
+    it { should be_file }
+  end
+end
+
+# cosul.agent.config
+
+agent_settings['scripts'].each do | script |
+
+  if script.has_key?('name')
+    script_name = script['name']
+  else
+    script_name = File.basename(script['source'].sub('salt://','/'))
+  end
+
+  describe file(File.join(agent_settings['scripts_dir'], script_name)) do
+    it { should exist }
+    it { should be_file }
+    it { should be_owned_by 'consul' }
+    it { should be_grouped_into 'consul' }
+    it { should be_mode 770 }
+  end
+end
+
+describe file(File.join(agent_settings['opts']['config-dir'][0], 'config.json')) do
+  it { should exist }
+  it { should be_file }
+  it { should be_owned_by 'consul' }
+  it { should be_grouped_into 'consul' }
+end
+
+describe 'consul agent config file' do
+  it 'should match merged pillar data when rendered to json' do
+    config_file = File.read(File.join(agent_settings['opts']['config-dir'][0], 'config.json'))
+    expect(agent_settings['config'].to_json).to be_json_eql(config_file)
+  end
+end
+
+if agent_settings['services']
+  describe file(File.join(agent_settings['opts']['config-dir'][0], 'services.json')) do
+    it { should exist }
+    it { should be_file }
+    it { should be_owned_by 'consul' }
+    it { should be_grouped_into 'consul' }
+  end
+
+  describe 'consul agent services file' do
+    it 'should match merged pillar data when rendered to json' do
+      service_file = File.read(File.join(agent_settings['opts']['config-dir'][0], 'services.json'))
+      service_hash = JSON.parse(service_file)
+      expect(service_hash['services'].to_json).to be_json_eql(agent_settings['services'].to_json)
+    end
+  end
 end
 
 
+if agent_settings['checks']
+  describe file(File.join(agent_settings['opts']['config-dir'][0], 'checks.json')) do
+    it { should exist }
+    it { should be_file }
+    it { should be_owned_by 'consul' }
+    it { should be_grouped_into 'consul' }
+  end
+
+  describe 'consul agent checks file' do
+    it 'should match merged pillar data when rendered to json' do
+      check_file = File.read(File.join(agent_settings['opts']['config-dir'][0], 'checks.json'))
+      check_hash = JSON.parse(check_file)
+      expect(check_hash['checks'].to_json).to be_json_eql(agent_settings['checks'].to_json)
+    end
+  end
+end
+
+
+# consul.agent.service
+if agent_settings['pkg']['service']
+  describe file(agent_settings['service_def']['name']) do
+    it { should exist }
+    it { should be_file }
+  end
+
+  describe service('consul') do
+    it { should be_enabled }
+    it { should be_running }
+  end
+
+  describe command('ps aux | grep "/usr/local/bin/consul"') do
+    agent_settings['opts'].each do | k,v |
+      if not v.nil?
+        v.each do | opt |
+          its(:stdout) { should contain '-' + k + '=' + opt }
+        end
+      else
+        its(:stdout) { should contain '-' + k }
+      end
+    end
+  end
+end

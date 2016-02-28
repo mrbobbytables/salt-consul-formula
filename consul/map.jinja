@@ -30,12 +30,13 @@
 {% set agent_settings = salt['pillar.get']('consul:lookup:agent', default=defaults.agent, merge=True) %}
 {% set agent_pkg_name = 'consul_' ~ agent_settings.pkg.version ~ '_' ~ salt['grains.get']('kernel')|lower ~ '_' ~ osarch  ~ '.zip' %}
 {% set agent_hashes = 'consul_' ~ agent_settings.pkg.version ~ '_SHA256SUMS' %}
+{% set tmp_scripts = [] %}
 
 {% set tmp_agent_settings = {
   'data_dir': defaults.agent.config.data_dir,
-  'ssl': {},
+  'ssl': agent_settings.ssl,
   'pkg': {
-     'agent_name': agent_pkg_name,
+     'name': agent_pkg_name,
      'uri': base_url ~ '/consul/' ~ agent_settings.pkg.version ~ '/' ~ agent_pkg_name,
      'hash': base_url ~ '/consul/' ~ agent_settings.pkg.version ~ '/' ~ agent_hashes
   }
@@ -44,6 +45,18 @@
 {% if agent_settings.opts['data-dir'] is defined %}
   {% do tmp_agent_settings.update({ 'data_dir' : agent_settings.opts['data-dir'][0] }) %}
 {% endif %}
+
+{% for script in agent_settings.scripts %}
+  {% if 'name' not in script %}
+    {% set tmp_script = script %}
+    {% do salt['slsutil.update'](tmp_script, { 'name': salt['file.basename'](script.source) }) %}
+    {% do tmp_scripts.append(tmp_script) %}
+  {% else %}
+    {% do tmp_scripts.append(script) %}
+  {% endif %}
+{% endfor %}
+
+{% do salt['slsutil.update'](tmp_agent_settings, { 'scripts': tmp_scripts }) %}
 
 {% if agent_settings.ssl.ca.source is not none and agent_settings.ssl.ca.name is none %}
   {% do salt['slsutil.update'](tmp_agent_settings, { 'ssl': { 'ca': { 'name': salt['file.basename'](agent_settings.ssl.ca.source) } } }) %}
@@ -113,4 +126,3 @@
 
 {% set envconsul_settings = salt['pillar.get']('consul:lookup:envconsul', default=defaults.template, merge=True) %}
 {% set replicate_settings = salt['pillar.get']('consul:lookup:replicate', default=defaults.replicate, merge=True) %}
-

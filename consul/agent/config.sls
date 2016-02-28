@@ -10,7 +10,8 @@ sync-consul-agent-script-{{ script.name }}:
     - source: {{ script.source }}
     - makedirs: true
     - user: consul
-    - agent: consul
+    - group: consul
+    - mode: '0770'
     - require:
       - sls: consul.prereqs
 {% if 'template' in script %}

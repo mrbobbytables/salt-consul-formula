@@ -89,7 +89,7 @@ create-consul-agent-log-directory:
 
 download-consul-agent:
   file.managed:
-    - name: /tmp/{{ agent_settings.pkg.agent_name }}
+    - name: /tmp/{{ agent_settings.pkg.name }}
     - source: {{ agent_settings.pkg.uri }}
     - source_hash: {{ agent_settings.pkg.hash }}
     - require:
@@ -100,7 +100,7 @@ download-consul-agent:
 
 extract-consul-agent:
   cmd.wait:
-    - name: unzip -q -o /tmp/{{ agent_settings.pkg.agent_name }}
+    - name: unzip -q -o /tmp/{{ agent_settings.pkg.name }}
     - cwd: /tmp/
     - watch:
       - file: download-consul-agent
@@ -116,7 +116,7 @@ move-consul-agent-binary:
 
 clean-consul-archive:
   file.absent:
-    - name: /tmp/{{ salt['file.basename'](agent_settings.pkg.agent_name) }}
+    - name: /tmp/{{ salt['file.basename'](agent_settings.pkg.name) }}
     - watch:
        - file: move-consul-agent-binary
 

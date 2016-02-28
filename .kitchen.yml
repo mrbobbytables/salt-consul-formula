@@ -71,12 +71,9 @@ platforms:
       box: centos/7
       box_url: https://atlas.hashicorp.com/centos/7
 
-  - name: oracle-7
-    driver_config:
-      box: oracle-7
-      box_url: http://cloud.terry.im/vagrant/oraclelinux-7-x86_64.box
 
-  - name: suse-13
-    driver_config:
-      box: bento/opensuse-13.2
-      box_url: https://atlas.hashicorp.com/bento/opensuse-13.2
+# issue with salt install on suse currently        
+#  - name: suse-13
+#    driver_config:
+#      box: bento/opensuse-13.2
+#      box_url: https://atlas.hashicorp.com/bento/opensuse-13.2
