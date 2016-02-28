@@ -8,13 +8,11 @@ provisioner:
   formula: consul
   salt_install: bootstrap
   salt_bootstrap_options: -P git v2015.8.7
+  dependencies:
+    - name: test-data
+      path: .
   pillars-from-files:
     consul.sls: pillar.example
-  state_top:
-    base:
-      '*':
-        - consul.agent
-        - consul.template
   pillars:
     top.sls:
       base:
@@ -22,7 +20,20 @@ provisioner:
           - consul
 
 suites:
-  - name: consul
+  - name: agent
+    provisioner:
+      state_top:
+        base:
+          '*':
+            - consul.agent
+
+  - name: template
+    provisioner:
+      state_top:
+        base:
+          '*':
+            - consul.agent
+            - consul.template
 
 platforms:
   - name: debian-wheezy

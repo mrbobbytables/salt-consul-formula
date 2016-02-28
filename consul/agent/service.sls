@@ -27,7 +27,6 @@ consul-agent-service:
     - name: consul
     - enable: true
     - watch:
-      - file: {{ agent_settings.opts['config-dir'][0] }}/*
       - file: configure-consul-agent-service
 
 {% endif %}

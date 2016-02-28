@@ -51,32 +51,19 @@ def run():
         agent_settings = defaults['agent'].copy()
         __salt__['slsutil.update'](agent_settings, __pillar__['consul']['lookup']['agent'])
         agent_settings.update({ 'data_dir': agent_settings['config']['data_dir']})
-        agent_settings.update({ 'ui_dir' : agent_settings['config']['ui_dir'] })
 
         if 'data-dir' in agent_settings['opts']:
             agent_settings.update({ 'data_dir' : agent_settings.opts['data-dir'][0] })
 
-        if 'ui-dir' in agent_settings['opts']:
-            agent_settings.update({ 'ui_dir' : agent_settings.opts['ui-dir'][0] })
 
     except Exception:
         # Can still proceed with cleaning up binaries
         pass
     else:
-
         rem_list.append(agent_settings['opts']['config-dir'][0])
         rem_list.append(agent_settings['data_dir'])
-        rem_list.append(agent_settings['script_dir'])
-        rem_list.append(agent_settings['ui_dir'])
+        rem_list.append(agent_settings['scripts_dir'])
 
-        ui_prefix = os.path.basename(agent_settings['ui_dir'])
-        ui_dir = os.path.dirname(agent_settings['ui_dir'])
-        dir_list = []
-        dir_list = os.listdir(ui_dir)
-
-        for d in dir_list:
-            if re.match('^' + ui_prefix + '-\d+\.\d+\.\d+', d):
-                rem_list.append(os.path.join(ui_dir, d))
 
 #--------------------#
 

@@ -80,7 +80,6 @@ _start() {
   echo -n $"Starting $NAME: $DAEMON"
 
   daemon                \
-    --user=$USER        \
     --pidfile=$PIDFILE  \
     "{ $DAEMON $DAEMON_ARGS &>> $LOGFILE & } ; echo \$! >| $PIDFILE"
 

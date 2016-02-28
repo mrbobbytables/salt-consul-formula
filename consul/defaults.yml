@@ -1,10 +1,20 @@
 agent:
   data_dir: /var/lib/consul
-  ui_dir: /usr/share/consul/agent/ui
   scripts_dir: /usr/share/consul/agent/scripts
-  scripts: []
   log:
   log_dir:
+  ssl:
+    enabled: true
+    dir: /etc/consul/ssl
+    ca: 
+      name:
+      source:
+    cert:
+      name:
+      source:
+    key:
+      name:
+      source:
   pkg:
     install: true
     service: true
@@ -18,7 +28,7 @@ agent:
     ui_dir: /usr/share/consul/agent/ui
   services: []
   checks: []
-
+  scripts: []
 
 
 
@@ -26,6 +36,18 @@ template:
   templates_dir: /usr/share/consul/template/templates
   log:
   log_dir:
+  ssl:
+    enabled: true
+    dir: /etc/consul/ssl
+    ca: 
+      name:
+      source:
+    cert:
+      name:
+      source:
+    key:
+      name:
+      source:
   pkg:
     install: false
     service: true

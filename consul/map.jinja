@@ -1,7 +1,7 @@
 {% import_yaml 'consul/defaults.yml' as defaults %}
 {% import_yaml 'consul/providermap.yml' as providermap %}
 {% set provider = salt['test.provider']('service')|lower %}
-{% set release_url = 'https://releases.hashicorp.com' %}
+{% set base_url = 'https://releases.hashicorp.com' %}
 
 {# set service information based on provider #}
 
@@ -26,25 +26,18 @@
 
 {#---------- Begin Agent Config ----------#}
 
-{# the below logic is to preserve priority of commandline options overriding config options and impacts #}
-{# creation of directories during the agent install. #}
 
 {% set agent_settings = salt['pillar.get']('consul:lookup:agent', default=defaults.agent, merge=True) %}
 {% set agent_pkg_name = 'consul_' ~ agent_settings.pkg.version ~ '_' ~ salt['grains.get']('kernel')|lower ~ '_' ~ osarch  ~ '.zip' %}
-{% set agent_ui_name = 'consul_' ~ agent_settings.pkg.version ~ '_web_ui.zip' %}
 {% set agent_hashes = 'consul_' ~ agent_settings.pkg.version ~ '_SHA256SUMS' %}
-
 
 {% set tmp_agent_settings = {
   'data_dir': defaults.agent.config.data_dir,
-  'ui_dir': defaults.agent.config.ui_dir,
+  'ssl': {},
   'pkg': {
      'agent_name': agent_pkg_name,
-     'agent_uri': release_url ~ '/consul/' ~ agent_settings.pkg.version ~ '/' ~ agent_pkg_name,
-     'agent_hash': release_url ~ '/consul/' ~ agent_settings.pkg.version ~ '/' ~ agent_hashes,
-     'ui_name': agent_ui_name,
-     'ui_uri': release_url ~ '/consul/' ~ agent_settings.pkg.version ~ '/' ~ agent_ui_name,
-     'ui_hash': release_url ~ '/consul/' ~ agent_settings.pkg.version ~ '/' ~ agent_hashes
+     'uri': base_url ~ '/consul/' ~ agent_settings.pkg.version ~ '/' ~ agent_pkg_name,
+     'hash': base_url ~ '/consul/' ~ agent_settings.pkg.version ~ '/' ~ agent_hashes
   }
 } %}
 
@@ -52,8 +45,17 @@
   {% do tmp_agent_settings.update({ 'data_dir' : agent_settings.opts['data-dir'][0] }) %}
 {% endif %}
 
-{% if agent_settings.opts['ui-dir'] is defined %}
-  {% do tmp_agent_settings.update({ 'ui_dir': agent_settings.opts['ui-dir'][0] }) %}
+{% if agent_settings.ssl.ca.source is not none and agent_settings.ssl.ca.name is none %}
+  {% do salt['slsutil.update'](tmp_agent_settings, { 'ssl': { 'ca': { 'name': salt['file.basename'](agent_settings.ssl.ca.source) } } }) %}
+{% endif %}
+
+{% if agent_settings.ssl.cert.source is not none and agent_settings.ssl.cert.name is none  %}
+  {% do salt['slsutil.update'](tmp_agent_settings, { 'ssl': { 'cert': { 'name': salt['file.basename'](agent_settings.ssl.cert.source) } } }) %}
+{% endif %}
+
+
+{% if agent_settings.ssl.key.source is not none and agent_settings.ssl.key.name is none %}
+  {% do salt['slsutil.update'](tmp_agent_settings, { 'ssl': { 'key': { 'name': salt['file.basename'](agent_settings.ssl.key.source) } } }) %}
 {% endif %}
 
 
@@ -74,12 +76,29 @@
 {% set template_pkg_hash = 'consul-template_' ~ template_settings.pkg.version ~ '_SHA256SUMS' %}
 
 {% set tmp_template_settings = {
+    'ssl': {},
     'pkg': {
-      'template_name': template_pkg_name,
-      'template_uri' : release_url ~ '/consul-template/' ~ template_settings.pkg.version ~ '/' ~ template_pkg_name,
-      'template_hash': release_url ~ '/consul-template/' ~ template_settings.pkg.version ~ '/' ~ template_pkg_hash
+      'name': template_pkg_name,
+      'uri' : base_url ~ '/consul-template/' ~ template_settings.pkg.version ~ '/' ~ template_pkg_name,
+      'hash': base_url ~ '/consul-template/' ~ template_settings.pkg.version ~ '/' ~ template_pkg_hash
     }
 } %}
+
+
+
+{% if template_settings.ssl.ca.source is not none and template_settings.ssl.ca.name is none %}
+  {% do salt['slsutil.update'](tmp_template_settings, { 'ssl': { 'ca': { 'name': salt['file.basename'](template_settings.ssl.ca.source) } } }) %}
+{% endif %}
+
+{% if template_settings.ssl.cert.source is not none and template_settings.ssl.cert.name is none  %}
+  {% do salt['slsutil.update'](tmp_template_settings, { 'ssl': { 'cert': { 'name': salt['file.basename'](template_settings.ssl.cert.source) } } }) %}
+{% endif %}
+
+
+{% if template_settings.ssl.key.source is not none and template_settings.ssl.key.name is none %}
+  {% do salt['slsutil.update'](tmp_template_settings, { 'ssl': { 'key': { 'name': salt['file.basename'](template_settings.ssl.key.source) } } }) %}
+{% endif %}
+
 
 {# Ensures logging is disabled on system or if no path is defined #}
 {% if provider == 'systemd' or template_settings.log_dir is none %}

@@ -2,7 +2,7 @@
 {%- set render_settings = { 
    'opts' : [], 
    'logfile' : '/dev/null',
-   'pidfile' : '/var/run/consul/consul.pid'
+   'pidfile' : '/var/run/consul.pid'
    }
 -%}
 
@@ -66,12 +66,14 @@ if [ ! -d $CONFIGDIR ]; then
 fi
 
 _start() {
-  mkdir -p $(dirname $PIDFILE)
 
   if [ $LOGFILE != /dev/null ]; then
     touch $LOGFILE
     chown $USER:$USER $LOGFILE
   fi
+
+  touch $PIDFILE
+  chown $USER:$USER $PIDFILE
 
   log_begin_msg "Starting $NAME: $DAEMON"
 
@@ -96,6 +98,7 @@ _stop() {
   --retry=INT/30/KILL/5
 
   log_end_msg $?
+  rm -f $PIDFILE
 }
 
 _restart() {

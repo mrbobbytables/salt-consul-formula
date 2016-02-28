@@ -13,8 +13,8 @@ ExecStart=/usr/local/bin/consul agent {% for key, value in agent_settings.get("o
 {% endfor %}
 
 ExecReload=/bin/kill -HUP $MAINPID
-ExecStop=/bin/kill -INT $MAINPID
 KillMode=process
+KillSignal=SIGINT
 Environment=GOMAXPROCS={{ salt['grains.get']('num_cpus') }}
 
 [Install]

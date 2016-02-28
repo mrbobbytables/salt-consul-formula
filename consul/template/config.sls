@@ -54,3 +54,31 @@ config-consul-template-templates:
     - require:
        - sls: consul.prereqs
 {% endif %}
+
+
+{% if salt['service.available']('consul-template') %}
+
+{% if salt['test.provider']('service') == 'systemd' %}
+
+consul-template-config-systemd-unit-helper:
+  module.wait:
+    - name: service.systemctl_reload
+    - watch:
+      - file: config-consul-template
+{% if template_settings.templates %}      
+      - file: config-consul-template-temaplates
+{% endif %}
+{% endif %}
+
+consul-template-config-service-reloader:
+  service.running:
+  - name: consul-template
+  - enable: true
+  - watch:
+    - file: config-consul-template
+{% if template_settings.templates %}
+    - file: config-consul-template-templates
+{% endif %}
+{% endif %}
+
+

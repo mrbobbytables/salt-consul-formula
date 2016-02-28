@@ -51,3 +51,27 @@ config-consul-agent-checks:
     - require:
        - sls: consul.prereqs
 
+{% if salt['service.available']('consul') %}
+
+{% if salt['test.provider']('service') == 'systemd' %}
+
+consul-agent-config-systemd-unit-helper:
+  module.wait:
+    - name: service.systemctl_reload
+    - watch:
+      - file: config-consul-agent
+      - file: config-consul-agent-services
+      - file: config-consul-agent-checks
+
+{% endif %}
+
+consul-agent-config-service-reloader:
+  service.running:
+  - name: consul
+  - enable: true
+  - watch:
+    - file: config-consul-agent
+    - file: config-consul-agent-services
+    - file: config-consul-agent-checks
+
+{% endif %}

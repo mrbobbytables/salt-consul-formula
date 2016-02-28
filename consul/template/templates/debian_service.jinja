@@ -1,13 +1,13 @@
-{%- from 'consul/map.jinja' import agent_settings with context -%}
+{%- from 'consul/map.jinja' import template_settings with context -%}
 {%- set render_settings = { 
    'opts' : [], 
    'logfile' : '/dev/null',
-   'pidfile' : '/var/run/consul/consul.pid'
+   'pidfile' : '/var/run/consul_template.pid'
    }
 -%}
 
 
-{%- for key, value in agent_settings.get('opts').iteritems() -%} 
+{%- for key, value in template_settings.get('opts').iteritems() -%} 
   {%- if value is none -%} 
     {%- do render_settings.opts.append('-' ~ key) -%} 
   {%- else -%}
@@ -17,23 +17,23 @@
   {%- endif -%} 
 {%- endfor -%}
 
-{%- if 'pid-file' in agent_settings.opts -%}
-  {%- do render_settings.update({ 'pidfile' : agent_settings.opts['pid-file'][0] }) -%}
+{%- if 'pid-file' in template_settings.opts -%}
+  {%- do render_settings.update({ 'pidfile' : template_settings.opts['pid-file'][0] }) -%}
 {%- endif -%}
 
-{%- if agent_settings.log -%}
-{% do render_settings.update({ 'logfile' : agent_settings.log_dir ~ '/agent.log' }) %}
+{%- if template_settings.log -%}
+{% do render_settings.update({ 'logfile' : template_settings.log_dir ~ '/template.log' }) %}
 {%- endif -%} 
 
 #!/bin/sh
 
 
 ### BEGIN INIT INFO
-# Provides:       consul
+# Provides:       consul-template
 # Required-Start: $local_fs $network
 # Default-Start: 2 3 4 5
 # Default-Stop:  0 1 6
-# Short-Description: Manage the consul agent
+# Short-Description: Manage the consul template daemon
 # Description: A tool for Service Discovery and Configuration. 
 ### END INIT INFO
 
@@ -41,12 +41,12 @@ export PATH=/sbin:/bin:/usr/sbin:/usr/bin:/usr/local/sbin:/usr/local/bin
 export GOMAXPROCS={{ salt['grains.get']('num_cpus') }}
 
 NAME=consul-template
-USER=consul
+USER=root
 LOGFILE={{ render_settings.logfile }}
 PIDFILE={{ render_settings.pidfile }}
-CONFIGDIR={{ agent_settings.opts['config-dir'][0] }}
+CONFIGDIR={{ template_settings.opts['config'][0] }}
 DAEMON=/usr/local/bin/$NAME
-DAEMON_ARGS=" agent {{ render_settings.opts|join(' ') }}"
+DAEMON_ARGS=" {{ render_settings.opts|join(' ') }}"
 
 # source function library
 . /lib/lsb/init-functions
@@ -66,12 +66,14 @@ if [ ! -d $CONFIGDIR ]; then
 fi
 
 _start() {
-  mkdir -p $(dirname $PIDFILE)
 
   if [ $LOGFILE != /dev/null ]; then
     touch $LOGFILE
     chown $USER:$USER $LOGFILE
   fi
+
+  touch $PIDFILE
+  chown $USER:$USER $PIDFILE
 
   log_begin_msg "Starting $NAME: $DAEMON"
 
@@ -80,7 +82,6 @@ _start() {
     --no-close               \
     --make-pidfile           \
     --user=$USER             \
-    --chuid=$USER            \
     --pidfile=$PIDFILE       \
     --exec $DAEMON -- $DAEMON_ARGS >> $LOGFILE 2>&1
 
@@ -96,6 +97,7 @@ _stop() {
   --retry=INT/30/KILL/5
 
   log_end_msg $?
+  rm -f $PIDFILE
 }
 
 _restart() {

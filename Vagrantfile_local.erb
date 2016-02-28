@@ -6,6 +6,15 @@ Vagrant.configure("2") do |c|
   c.berkshelf.enabled = false if Vagrant.has_plugin?("vagrant-berkshelf")
   c.vm.box = "<%= config[:box] %>"
 
+  unless  Vagrant.has_plugin?('vagrant-vbguest')
+    puts "#!#!#!#!#!#!#!#!#!#! WARNING #!#!#!#!#!#!#!#!#!#!"
+    puts "For some boxes (e.g. wheezy), initial converges may"
+    puts "fail without virtualbox guest additions installed."
+    puts "install the vagrant plugin 'vagrant-vbguest' to"
+    puts "resolve this issue."
+    puts "#!#!#!#!#!#!#!#!#!#! WARNING #!#!#!#!#!#!#!#!#!#!"
+  end
+
   if Vagrant.has_plugin?("vagrant-cachier")
     c.cache.auto_detect = true
     c.cache.scope = :box

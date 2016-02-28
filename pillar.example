@@ -2,19 +2,31 @@ consul:
   lookup:
     agent:
       log: true
+      ssl: 
+        enabled: true
+        dir: /etc/consul/ssl
+        ca:
+          source: salt://test-data/ssl/ca.cert
+        cert:
+          source: salt://test-data/ssl/consul.cert
+        key:
+          source: salt://test-data/ssl/consul.key
       pkg:
         install: true
         service: true
         version: 0.6.3
       opts:
-        server:
-        http-port:
-          - 9999
-          
+        server: 
       config:
         bootstrap: true
         bind_addr: 0.0.0.0
+        client_addr: 0.0.0.0
         retry_interval: 30s
+        ca_file: /etc/consul/ssl/ca.cert
+        cert_file: /etc/consul/ssl/consul.cert
+        key_file: /etc/consul/ssl/consul.key
+        verify_incoming: true
+        verify_outgoing: true
         ports:
           http: 9999
       services:
@@ -42,6 +54,15 @@ consul:
 
     template:
       log: true
+      ssl: 
+        enabled: true
+        dir: /etc/consul/ssl
+        ca:
+          source: salt://test-data/ssl/ca.cert
+        cert:
+          source: salt://test-data/ssl/consul.cert
+        key:
+          source: salt://test-data/ssl/consul.key
       pkg:
         install: true
         service: true

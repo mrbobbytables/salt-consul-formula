@@ -6,8 +6,6 @@ stop on runlevel [!2345]
 
 respawn
 kill signal SIGINT
-setuid consul
-setgid consul
 
 script
 # Prevents Consul Template from blocking a scheduler thread

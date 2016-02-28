@@ -1,6 +1,9 @@
 {% from 'consul/map.jinja' import template_settings with context %}
 
-{% if template_settings.service_def is defined and template_settings.pkg.service == true %}
+include:
+ - consul.prereqs
+
+{% if template_settings.service_def is defined and template_settings.pkg.service %}
 
 {% if salt['test.provider']('service') == 'systemd' %}
 
@@ -22,10 +25,9 @@ configure-consul-template-service:
 
 consul-template-service:
   service.running:
-    - name: consul
+    - name: consul-template
     - enable: true
     - watch:
-      - file: {{ template_settings.opts['config'][0] }}/*
       - file: configure-consul-template-service
 
 {% endif %}
