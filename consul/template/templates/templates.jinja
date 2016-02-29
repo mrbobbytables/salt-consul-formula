@@ -1,3 +1,11 @@
-{
-    'template': {{ template_list|json }}
+{% for template in template_list %}
+template = {
+{%- for k,v in template.iteritems() -%}
+{%- if k == 'perms' %}
+    "{{ k }}" = {{ v }}
+{%- else %}
+    "{{ k }}" = "{{ v }}"
+{%- endif -%}
+{% endfor %}
 }
+{% endfor %}

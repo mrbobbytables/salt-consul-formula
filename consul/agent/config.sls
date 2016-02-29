@@ -6,7 +6,7 @@ include:
 {% for script in agent_settings.scripts %}
 sync-consul-agent-script-{{ script.name }}:
   file.managed:
-    - name: {{ agent_settings.scripts_dir }}/{{ script.name }}
+    - name: {{ salt['file.join'](agent_settings.scripts_dir, script.name) }}
     - source: {{ script.source }}
     - makedirs: true
     - user: consul

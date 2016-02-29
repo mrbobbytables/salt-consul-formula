@@ -74,14 +74,25 @@ consul:
         service: true
       opts:
         consul:
-         - 127.0.0.1
+         - 127.0.0.1:9999
       config:
         log_level: debug
+        ssl:
+          enabled: false
+          verify: false
+          ca_cert: /etc/consul/ssl/ca.cert
+          cert: /etc/consul/ssl/consul.cert
+          key: /etc/consul/ssl/consul.cert
       templates:
         - 
-          name: test2.ctmplt
-          source: salt://test-data/templates/test.ctmplt
+          name: test1.ctmplt
+          source: salt://test-data/templates/test_1.ctmplt
           config:
-            destination: /tmp/test.rendered.tmplt
-            command_timeout: 60s
-
+            destination: /tmp/ct_render_test_1
+            command: touch /tmp/ct_cmd_test_1
+        -
+         source: salt://test-data/templates/test_2.ctmplt
+         config:
+           destination: /tmp/ct_render_test_2
+           command: touch /tmp/ct_cmd_test_2
+           perms: "0777"

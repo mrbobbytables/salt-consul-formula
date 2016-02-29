@@ -3,7 +3,7 @@
 include:
   - consul.prereqs
 
-{% if agent_settings.service_def is defined and agent_settings.pkg.service == true %}
+{% if agent_settings.service_def is defined and agent_settings.pkg.service %}
 {% if salt['test.provider']('service') == 'systemd' %}
 
 consul-agent-systemd-unit-helper:
@@ -14,7 +14,7 @@ consul-agent-systemd-unit-helper:
 
 {% endif %}
 
-configure-consul-agent-service:
+config-consul-agent-service:
   file.managed:
     - name: {{ agent_settings.service_def.name }}
     - source: {{ agent_settings.service_def.source }}
@@ -27,6 +27,6 @@ consul-agent-service:
     - name: consul
     - enable: true
     - watch:
-      - file: configure-consul-agent-service
+      - file: config-consul-agent-service
 
 {% endif %}

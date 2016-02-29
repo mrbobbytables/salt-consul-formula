@@ -33,6 +33,7 @@ suites:
         base:
           '*':
             - consul.agent
+            - test-data.seed
             - consul.template
 
 platforms:

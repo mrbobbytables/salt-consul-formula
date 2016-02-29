@@ -106,14 +106,14 @@
     {% do salt['slsutil.update'](tmp_tmplt, { 'name': salt['file.basename'](tmplt.source) }) %}
 
     {% if 'source' not in tmp_tmplt.config %}
-      {% do salt['slsutil.update'](tmp_tmplt, { 'config': { 'source': template_settings.templates_dir ~ '/' ~ tmp_tmplt.name }}) %}
+      {% do salt['slsutil.update'](tmp_tmplt, { 'config': { 'source': salt['file.join'](template_settings.templates_dir, tmp_tmplt.name) }}) %}
     {% endif %}
 
     {% do tmp_templates.append(tmp_tmplt) %}
   {% else %}
     {% if 'source' not in tmplt.config %}
       {% set tmp_tmplt = tmplt %}
-      {% do salt['slsutil.update'](tmp_tmplt, { 'config': { 'source': template_settings.templates_dir ~ '/' ~ tmp_tmplt.name }}) %}
+      {% do salt['slsutil.update'](tmp_tmplt, { 'config': { 'source': salt['file.join'](template_settings.templates_dir, tmp_tmplt.name) }}) %}
       {% do tmp_templates.append(tmp_tmplt) %}
     {% else %}
       {% do tmp_templates.append(tmplt) %}

@@ -5,12 +5,13 @@ include:
   - consul.prereqs
 
 {% for tmplt in template_settings.templates %}
-sync-consul-template-{{ template_settings.templates_dir ~ '/' ~ tmplt.name }}:
+sync-consul-template-{{ salt['file.join'](template_settings.templates_dir, tmplt.name) }}:
   file.managed:
-    - name: {{ template_settings.templates_dir ~ '/' ~ tmplt.name }}
+    - name: {{ salt['file.join'](template_settings.templates_dir, tmplt.name) }}
     - source: {{ tmplt.source }}
     - user: consul
     - group: consul
+    - mode: '0660'
     - require:
       - sls: consul.prereqs
 {% if 'template' in tmplt %}
@@ -33,7 +34,7 @@ config-consul-template:
 {% if template_settings.templates %}
 config-consul-template-templates:
   file.managed:
-    - name: {{ template_settings.opts['config'][0] }}/templates.json
+    - name: {{ template_settings.opts['config'][0] }}/templates.hcl
     - source: salt://consul/template/templates/templates.jinja
     - template: jinja
     - user: consul
