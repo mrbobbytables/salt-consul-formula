@@ -77,3 +77,11 @@ consul:
          - 127.0.0.1
       config:
         log_level: debug
+      templates:
+        - 
+          name: test2.ctmplt
+          source: salt://test-data/templates/test.ctmplt
+          config:
+            destination: /tmp/test.rendered.tmplt
+            command_timeout: 60s
+

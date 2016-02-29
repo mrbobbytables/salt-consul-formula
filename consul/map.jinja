@@ -87,8 +87,10 @@
 {% set template_settings = salt['pillar.get']('consul:lookup:template', default=defaults.template, merge=True) %}
 {% set template_pkg_name = 'consul-template_' ~ template_settings.pkg.version ~ '_' ~ salt['grains.get']('kernel')|lower ~ '_' ~ osarch  ~ '.zip' %}
 {% set template_pkg_hash = 'consul-template_' ~ template_settings.pkg.version ~ '_SHA256SUMS' %}
+{% set tmp_templates = [] %}
 
 {% set tmp_template_settings = {
+    'templates': template_settings.templates,
     'ssl': {},
     'pkg': {
       'name': template_pkg_name,
@@ -97,6 +99,29 @@
     }
 } %}
 
+
+{% for tmplt in template_settings.templates %}
+  {% if 'name' not in tmplt %}
+    {% set tmp_tmplt = tmplt %}
+    {% do salt['slsutil.update'](tmp_tmplt, { 'name': salt['file.basename'](tmplt.source) }) %}
+
+    {% if 'source' not in tmp_tmplt.config %}
+      {% do salt['slsutil.update'](tmp_tmplt, { 'config': { 'source': template_settings.templates_dir ~ '/' ~ tmp_tmplt.name }}) %}
+    {% endif %}
+
+    {% do tmp_templates.append(tmp_tmplt) %}
+  {% else %}
+    {% if 'source' not in tmplt.config %}
+      {% set tmp_tmplt = tmplt %}
+      {% do salt['slsutil.update'](tmp_tmplt, { 'config': { 'source': template_settings.templates_dir ~ '/' ~ tmp_tmplt.name }}) %}
+      {% do tmp_templates.append(tmp_tmplt) %}
+    {% else %}
+      {% do tmp_templates.append(tmplt) %}
+    {% endif %}
+  {% endif %}
+{% endfor %}
+
+{% do salt['slsutil.update'](tmp_template_settings, { 'templates': tmp_templates }) %}
 
 
 {% if template_settings.ssl.ca.source is not none and template_settings.ssl.ca.name is none %}

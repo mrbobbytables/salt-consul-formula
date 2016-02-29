@@ -266,7 +266,7 @@ if agent_settings['pkg']['service']
     it { should be_running }
   end
 
-  describe command('ps aux | grep "/usr/local/bin/consul"') do
+  describe command('ps aux | grep "consul agent"') do
     agent_settings['opts'].each do | k,v |
       if not v.nil?
         v.each do | opt |
