@@ -1,3 +1,9 @@
+{# sleep a brief bit to allow consul to fully come up #}
+
+sleep-before-attepting-to-insert:
+  cmd.run:
+    - name: sleep 10
+
 insert-consul-test-kv-1:
   module.run:
     - name: consul.put

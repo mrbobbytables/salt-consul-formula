@@ -8,10 +8,10 @@ consul:
         version: 0.6.3
       scripts:
         -
-          source: salt://test-data/scripts/test1.sh
+          source: salt://test-data/agent/scripts/test1.sh
         -
           name: test2
-          source: salt://test-data/scripts/test2.sh
+          source: salt://test-data/agent/scripts/test2.sh
       ssl: 
         enabled: true
         dir: /etc/consul/ssl
@@ -86,12 +86,12 @@ consul:
       templates:
         - 
           name: test1.ctmplt
-          source: salt://test-data/templates/test_1.ctmplt
+          source: salt://test-data/template/templates/test_1.ctmplt
           config:
             destination: /tmp/ct_render_test_1
             command: touch /tmp/ct_cmd_test_1
         -
-         source: salt://test-data/templates/test_2.ctmplt
+         source: salt://test-data/template/templates/test_2.ctmplt
          config:
            destination: /tmp/ct_render_test_2
            command: touch /tmp/ct_cmd_test_2

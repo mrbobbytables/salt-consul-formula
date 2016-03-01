@@ -148,6 +148,3 @@
 
 
 {#---------- End Template Config ----------#}
-
-{% set envconsul_settings = salt['pillar.get']('consul:lookup:envconsul', default=defaults.template, merge=True) %}
-{% set replicate_settings = salt['pillar.get']('consul:lookup:replicate', default=defaults.replicate, merge=True) %}

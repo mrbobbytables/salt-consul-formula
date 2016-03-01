@@ -6,19 +6,20 @@ Vagrant.configure("2") do |c|
   c.berkshelf.enabled = false if Vagrant.has_plugin?("vagrant-berkshelf")
   c.vm.box = "<%= config[:box] %>"
 
-  unless  Vagrant.has_plugin?('vagrant-vbguest')
-    puts "#!#!#!#!#!#!#!#!#!#! WARNING #!#!#!#!#!#!#!#!#!#!"
-    puts "For some boxes (e.g. wheezy), initial converges may"
-    puts "fail without virtualbox guest additions installed."
-    puts "install the vagrant plugin 'vagrant-vbguest' to"
-    puts "resolve this issue."
-    puts "#!#!#!#!#!#!#!#!#!#! WARNING #!#!#!#!#!#!#!#!#!#!"
-  end
 
-  if Vagrant.has_plugin?("vagrant-cachier")
+  if Vagrant.has_plugin?("vagrant-cachier") and  Vagrant.has_plugin?('vagrant-vbguest')
+    <% if [ 'debian/wheezy64', 'debian/jessie64'].include? config[:box] %>
+    c.vbguest.auto_update = true
+    <% else %>
+    c.vbguest.auto_update = false 
+    <% end %>
     c.cache.auto_detect = true
     c.cache.scope = :box
+  else
+    c.cache.auto_detect = false
   end
+
+
 
 <% if config[:box_url] %>
   c.vm.box_url = "<%= config[:box_url] %>"

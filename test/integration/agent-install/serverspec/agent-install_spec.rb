@@ -32,7 +32,7 @@ end
 agent_settings = {}
 agent_settings.deep_merge(defaults['agent'])
 agent_settings.deep_merge(pillar_data['consul']['lookup']['agent'])
-
+current_pillar_version = agent_settings['pkg']['version']
 
 case salt_osarch[/^local:\s+(?<osarch>\S+)\z/, :osarch]
 when 'amd64', 'x86_64'
@@ -338,3 +338,4 @@ if agent_settings['pkg']['service']
     end
   end
 end
+

@@ -10,7 +10,7 @@ consul-agent-systemd-unit-helper:
   module.wait:
     - name: service.systemctl_reload
     - watch:
-      - file: configure-consul-agent-service
+      - file: config-consul-agent-service
 
 {% endif %}
 

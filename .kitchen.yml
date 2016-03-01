@@ -20,20 +20,37 @@ provisioner:
           - consul
 
 suites:
-  - name: agent
+  - name: agent-install
     provisioner:
       state_top:
         base:
           '*':
             - consul.agent
 
-  - name: template
+  - name: agent-clean
     provisioner:
       state_top:
         base:
           '*':
             - consul.agent
-            - test-data.seed
+            - test-data.agent.seed_clean
+
+  - name: agent-remove
+    provisioner:
+      state_top:
+        base:
+          '*':
+            - consul.agent
+            - test-data.agent.seed_clean
+            - consul.agent.remove
+
+  - name: template-install
+    provisioner:
+      state_top:
+        base:
+          '*':
+            - consul.agent
+            - test-data.template.seed_kv
             - consul.template
 
 platforms:
@@ -76,5 +93,5 @@ platforms:
 # issue with salt install on suse currently        
 #  - name: suse-13
 #    driver_config:
-#      box: bento/opensuse-13.2
+#      box: bento/opensuse-13#.2
 #      box_url: https://atlas.hashicorp.com/bento/opensuse-13.2
