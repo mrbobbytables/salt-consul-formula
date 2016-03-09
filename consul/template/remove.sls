@@ -13,9 +13,9 @@ def run():
     rem_list = []
     service_provider = __salt__['test.provider']('service').lower()
 
-    config['stop-consul-agent-service'] = {
+    config['stop-consul-template-service'] = {
         'service.dead' : [
-            { 'name': 'consul' },
+            { 'name': 'consul-template' },
             { 'enable': False },
             { 'sig': bin_path }
         ]
@@ -24,17 +24,17 @@ def run():
 
     # WILL remove non-salt managed files (defaults)
     if service_provider == 'systemd':
-        rem_list.append('/etc/systemd/system/consul.service')
+        rem_list.append('/etc/systemd/system/consul-template.service')
     elif service_provider == 'upstart':
-        rem_list.append('/etc/init/consul.conf')
-        rem_list.append('/etc/init/consul.override')
+        rem_list.append('/etc/init/consul-template.conf')
+        rem_list.append('/etc/init/consul-template.override')
         rem_list.append('etc/default/consul')
     elif service_provider == 'debian_service':
-        rem_list.append('/etc/init.d/consul')
-        rem_list.append('/etc/default/consul')
+        rem_list.append('/etc/init.d/consul-template')
+        rem_list.append('/etc/default/consul-template')
     elif service_provider == 'rh_service':
-        rem_list.append('/etc/init.d/consul')
-        rem_list.append('/etc/sysconfig/consul')
+        rem_list.append('/etc/init.d/consul-template')
+        rem_list.append('/etc/sysconfig/consul-template')
 
 
 
@@ -48,21 +48,16 @@ def run():
         f.close()
 
         # use salt's dictupdate to merge recursively
-        agent_settings = defaults['agent'].copy()
-        __salt__['slsutil.update'](agent_settings, __pillar__['consul']['lookup']['agent'])
-        agent_settings.update({ 'data_dir': agent_settings['config']['data_dir']})
-
-        if 'data-dir' in agent_settings['opts']:
-            agent_settings.update({ 'data_dir' : agent_settings.opts['data-dir'][0] })
+        template_settings = defaults['template'].copy()
+        __salt__['slsutil.update'](template_settings, __pillar__['consul']['lookup']['template'])
 
 
     except Exception:
         # Can still proceed with cleaning up binaries
         pass
     else:
-        rem_list.append(agent_settings['opts']['config-dir'][0])
-        rem_list.append(agent_settings['data_dir'])
-        rem_list.append(agent_settings['scripts_dir'])
+        rem_list.append(template_settings['opts']['config'][0])
+        rem_list.append(template_settings['templates_dir'])
 
 
 #--------------------#
@@ -72,18 +67,18 @@ def run():
     file_list = os.listdir(bin_dir)
 
     for f in file_list:
-        if re.match('^consul-\d+\.\d+.\d+', f):
+        if re.match('^consul-template-\d+\.\d+.\d+', f):
             rem_list.append(os.path.join(bin_dir, f))
 
 
 # perform file / dir check before attempting to remove
     for rem in rem_list:
         if os.path.isfile(rem) or os.path.isdir(rem):
-            config['remove-consul-agent-' + rem] = {
+            config['remove-consul-template-' + rem] = {
                     'file.absent': [
                             { 'name': rem },
                             { 'watch': [
-                                    { 'service': 'stop-consul-agent-service' }
+                                    { 'service': 'stop-consul-template-service' }
                            ]}
                     ]
              }

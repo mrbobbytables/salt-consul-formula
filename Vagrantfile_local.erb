@@ -8,7 +8,7 @@ Vagrant.configure("2") do |c|
 
 
   if Vagrant.has_plugin?("vagrant-cachier") and  Vagrant.has_plugin?('vagrant-vbguest')
-    <% if [ 'debian/wheezy64', 'debian/jessie64'].include? config[:box] %>
+    <% if [ 'debian/wheezy64', 'debian/jessie64', 'centos/7'].include? config[:box] %>
     c.vbguest.auto_update = true
     <% else %>
     c.vbguest.auto_update = false 

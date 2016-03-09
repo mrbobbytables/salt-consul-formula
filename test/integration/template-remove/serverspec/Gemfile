@@ -1,0 +1,5 @@
+source 'https://rubygems.org'
+
+gem "deep_merge", :require => 'deep_merge/rails_compat'
+gem 'json_spec', '~> 1.1', '>= 1.1.4'
+

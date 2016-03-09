@@ -1,7 +1,17 @@
 ---
 driver:
-  name: vagrant
-  vagrantfile_erb: Vagrantfile_local.erb
+  name: ec2
+  aws_ssh_key_id: <%= ENV['AWS_SSH_KEY_ID'] %>
+  security_group_ids: [ "<%= ENV['AWS_SGROUP_ID'] %>" ]
+  region: us-west-2
+  availability_zone: b
+  instance_type: t2.micro
+  associate_public_ip: true
+
+transport:
+  ssh_key: provision.key
+  connection_timeout: 10
+  connection_retries: 10
 
 provisioner:
   name: salt_solo
@@ -75,48 +85,25 @@ suites:
             - consul.template
             - test-data.template.seed_clean
 
-
-
-
-platforms:
-  - name: debian-wheezy
-    driver_config:
-      box: debian/wheezy64
-      box_url: https://atlas.hashicorp.com/debian/wheezy64
-
-  - name: debian-jessie
-    driver_config:
-      box: debian/jessie64
-      box_url: https://atlas.hashicorp.com/debian/jessie64
-     
+platforms: 
   - name: ubuntu-precise
-    driver_config:
-      box: ubuntu/precise64
-      box_url: https://atlas.hashicorp.com/ubuntu/precise64
+    transport:
+      username: ubuntu
+    driver:
+      image_search:
+        name: "ubuntu/images/hvm/ubuntu-precise-12.04-amd64-server-*"
 
   - name: ubuntu-trusty
-    driver_config:
-      box: ubuntu/trusty64
-      box_url: https://atlas.hashicorp.com/ubuntu/trusty64
+    transport:
+      username: ubuntu
+    driver:
+      image_search:
+        name: "ubuntu/images/hvm/ubuntu-trusty-14.04-amd64-server-*"
 
   - name: ubuntu-vivid
-    driver_config:
-      box: ubuntu/vivid64
-      box_url: https://atlas.hashicorp.com/ubuntu/vivid64
+    transport:
+      username: ubuntu
+    driver:
+      image_search:
+        name: "ubuntu/images/hvm/ubuntu-vivid-15.04-amd64-server-*"
 
-  - name: centos-6
-    driver_config:
-      box: bento/centos-6.7 
-      box_url: https://atlas.hashicorp.com/bento/boxes/centos-6.7
-
-  - name: centos-7
-    driver_config:
-      box: centos/7
-      box_url: https://atlas.hashicorp.com/centos/7
-
-
-# issue with salt install on suse currently        
-#  - name: suse-13
-#    driver_config:
-#      box: bento/opensuse-13#.2
-#      box_url: https://atlas.hashicorp.com/bento/opensuse-13.2

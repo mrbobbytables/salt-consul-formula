@@ -4,5 +4,4 @@
 .vagrant/
 vendor/
 *.swp
-*.pem
-*.key
+provision.key
