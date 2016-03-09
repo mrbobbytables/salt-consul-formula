@@ -36,6 +36,10 @@ namespace :test do
 
   namespace :vagrant do
 
+    @loader = Kitchen::Loader::YAML.new(local_config: '.kitchen.yml')
+    config = Kitchen::Config.new(loader: @loader)
+    concurrency = (ENV["concurrency"] || "1").to_i
+
     desc 'Execute the Vagrant test suites (install, clean, remove) for the consul agent.'
     task :agent => ['vagrant:agent:install', 'vagrant:agent:clean', 'vagrant:agent:remove']
 
@@ -46,11 +50,6 @@ namespace :test do
     task :destroy do
       task_runner(config, '.*', 'destroy', concurrency)
     end
-
-
-    @loader = Kitchen::Loader::YAML.new(local_config: '.kitchen.yml')
-    config = Kitchen::Config.new(loader: @loader)
-    concurrency = (ENV["concurrency"] || "1").to_i
 
     namespace :agent do
       desc 'Run the Vagrant agent install test suite.'
@@ -87,6 +86,10 @@ namespace :test do
 
   namespace :cloud do
 
+    @loader = Kitchen::Loader::YAML.new(local_config: '.kitchen.cloud.yml')
+    config = Kitchen::Config.new(loader: @loader)
+    concurrency = config.instances.size
+
     desc 'Execute the cloud test suites (install, clean, remove) for the consul agent.'
     task :agent => ['cloud:agent:install', 'cloud:agent:clean', 'cloud:agent:remove']
 
@@ -97,10 +100,6 @@ namespace :test do
     task :destroy do
       task_runner(config, '.*', 'destroy', concurrency)
     end
-
-    @loader = Kitchen::Loader::YAML.new(local_config: '.kitchen.cloud.yml')
-    config = Kitchen::Config.new(loader: @loader)
-    concurrency = config.instances.size
 
     namespace :agent do
       desc 'Run the cloud agent install test suite.'
