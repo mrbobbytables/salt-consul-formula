@@ -28,8 +28,18 @@ namespace :test do
   desc 'Execute the full Vagrant test suites for both the consul agent and consul-template.'
   task :vagrant => ['vagrant:agent', 'vagrant:template' ]
 
+
+# the cloud task is done this way to allow for greater parallel execution. It's limited to 10
+# concurrent instances to work around Aws::EC2::Errors::RequestLimitExceeded errors till
+# this can be resolved: https://github.com/test-kitchen/kitchen-ec2/pull/44
+
   desc 'Execute the full cloud test suites for both the consul agent and consul-template.'
-  task :cloud => ['cloud:agent', 'cloud:template' ]
+  task :cloud do
+    @loader = Kitchen::Loader::YAML.new(local_config: '.kitchen.cloud.yml')
+    config = Kitchen::Config.new(loader: @loader)
+    concurrency = 10
+    task_runner(config, '.*', 'test', concurrency)
+  end
 
 
   Kitchen.logger = Kitchen.default_file_logger
