@@ -32,17 +32,17 @@ Pillar Structure
 
 - ``consul.lookup.agent.config`` - Hash - All supplied parameters under this key are converted to json and used as the consul agent config. See the Consul_ configuration options for more information.
 
-- ``consul.lookup.agent.config.data_dir`` - string - **Default** - ``/var/lib/consul`` - The path to the Consul data directory.
+- ``consul.lookup.agent.config.data_dir`` - String - **Default** - ``/var/lib/consul`` - The path to the Consul data directory.
 
-- ``consul.lookup.agent.config.ui`` - binary - **Default** - ``true`` enabled the consul agent web UI.
+- ``consul.lookup.agent.config.ui`` - Boolean - **Default** - ``true`` enabled the consul agent web UI.
 
-- ``consul.lookup.agent.log`` - Binary - **Default:** ``true`` - Enable/disable logging.  Disabled by default on systems where systemd is used (journalctl is used instead).
+- ``consul.lookup.agent.log`` - Boolean - **Default:** ``true`` - Enable/disable logging.  Disabled by default on systems where systemd is used (journalctl is used instead).
 
 - ``consul.lookup.agent.log_dir`` - String - **Default:** ``/var/log/consul`` - The path to the directory where the log should be stored.
 
-- ``consul.lookup.agent.pkg.install`` - Binary - **Default:** ``true`` - Install Consul.
+- ``consul.lookup.agent.pkg.install`` - Boolean - **Default:** ``true`` - Install Consul.
 
-- ``consul.lookup.agent.pkg.service`` - Binary - **Default:** ``true`` - Install and configure as a service.
+- ``consul.lookup.agent.pkg.service`` - Boolean - **Default:** ``true`` - Install and configure as a service.
 
 - ``consul.lookup.agent.pkg.version`` - String - **Default:** ``0.6.3`` - Version of consul to install.
 
@@ -76,7 +76,7 @@ See the Consul_ configuration options for more information.
 
 - ``consul.lookup.agent.ssl.dir`` - String - **Default:** ``/etc/consul/ssl`` - Directory to store ssl certificates.
 
-- ``consul.lookup.agent.ssl.enabled`` - Binary - **Default:** ``true`` - Configure consul with ssl support. If enabled, the source configuration parameters for each ssl option are required.
+- ``consul.lookup.agent.ssl.enabled`` - Boolean - **Default:** ``true`` - Configure consul with ssl support. If enabled, the source configuration parameters for each ssl option are required.
 
 - ``consul.lookup.agent.ssl.key.name``- String - **Optional** - Name of server or consul priate key stored in the ssl directory. If not configured, it will default to the name from the supplied source.
 
@@ -154,13 +154,13 @@ See the Consul_ configuration options for more information.
 
 - ``consul.lookup.template.config`` - Hash - All supplied parameters under this key are converted to json and used as the consul template config. See the Consul-Template_ README for more information.
 
-- ``consul.lookup.template.log`` - Binary - **Default:** ``true`` - Enable/disable logging.  Disabled by default on systems where systemd is used (journalctl is used instead).
+- ``consul.lookup.template.log`` - Boolean - **Default:** ``true`` - Enable/disable logging.  Disabled by default on systems where systemd is used (journalctl is used instead).
 
 - ``consul.lookup.template.log_dir`` - String - **Default:** ``/var/log/consul`` - The path to the directory where the log should be stored.
 
-- ``consul.lookup.template.pkg.install`` - Binary - **Default:** ``false`` - Install Consul Template.
+- ``consul.lookup.template.pkg.install`` - Boolean - **Default:** ``false`` - Install Consul Template.
 
-- ``consul.lookup.template.pkg.service`` - Binary - **Default:** ``true`` - Install and configure as a service.
+- ``consul.lookup.template.pkg.service`` - Boolean - **Default:** ``true`` - Install and configure as a service.
 
 - ``consul.lookup.template.pkg.version`` - String - **Default:** ``0.6.3`` - Version of Consul Template to install.
 
@@ -188,7 +188,7 @@ See the Consul-Template_ README for more information.
 
 - ``consul.lookup.template.ssl.dir`` - String - **Default:** ``/etc/consul/ssl`` - Directory to store ssl certificates.
 
-- ``consul.lookup.template.ssl.enabled`` - Binary - **Default:** ``true`` - Configure consul with ssl support. If enabled, the source configuration parameters for each ssl option are required.
+- ``consul.lookup.template.ssl.enabled`` - Boolean - **Default:** ``true`` - Configure consul with ssl support. If enabled, the source configuration parameters for each ssl option are required.
 
 - ``consul.lookup.template.ssl.key.name``- String - **Optional** - Name of server or consul priate key stored in the ssl directory. If not configured, it will default to the name from the supplied source.
 

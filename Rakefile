@@ -37,7 +37,7 @@ namespace :test do
   task :cloud do
     @loader = Kitchen::Loader::YAML.new(local_config: '.kitchen.cloud.yml')
     config = Kitchen::Config.new(loader: @loader)
-    concurrency = 10
+    concurrency = (ENV["concurrency"] || "10").to_i
     task_runner(config, '.*', 'test', concurrency)
   end
 
