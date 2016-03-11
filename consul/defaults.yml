@@ -1,20 +1,11 @@
 agent:
-  data_dir: /var/lib/consul
-  scripts_dir: /usr/share/consul/agent/scripts
+  checks: []
+  config:
+    data_dir: /var/lib/consul
+    ui: true
   log:
   log_dir:
-  ssl:
-    enabled: true
-    dir: /etc/consul/ssl
-    ca: 
-      name:
-      source:
-    cert:
-      name:
-      source:
-    key:
-      name:
-      source:
+  data_dir: /var/lib/consul
   pkg:
     install: true
     service: true
@@ -22,52 +13,47 @@ agent:
   opts:
     config-dir:
       - /etc/consul/agent.d
-  config:
-    ui: true
-    data_dir: /var/lib/consul
-  services: []
-  checks: []
   scripts: []
-
-
-
-template:
-  templates_dir: /usr/share/consul/template/templates
-  log:
-  log_dir:
+  scripts_dir: /usr/share/consul/agent/scripts
+  services: []
   ssl:
-    enabled: true
-    dir: /etc/consul/ssl
     ca: 
       name:
       source:
     cert:
       name:
       source:
+    dir: /etc/consul/ssl
+    enabled: true
     key:
       name:
       source:
+
+
+
+template:
+  config: {}
+  log:
+  log_dir:
   pkg:
     install: false
     service: true
-    version: 0.12.2
+    version: 0.14.0
   opts:
     config:
       - /etc/consul/template.d
-  config: {}
+  ssl:
+    ca: 
+      name:
+      source:
+    cert:
+      name:
+      source:
+    dir: /etc/consul/ssl
+    enabled: true
+    key:
+      name:
+      source:
   templates: []
+  templates_dir: /usr/share/consul/template/templates
 
-
-
-
-
-
-replicate:
-  pkg:
-    install: false
-    version: 0.2.0
-
-envconsul:
-  pkg:
-    install: false
-    version: 0.6.0

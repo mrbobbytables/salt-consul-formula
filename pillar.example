@@ -6,12 +6,6 @@ consul:
         install: true
         service: true
         version: 0.6.3
-      scripts:
-        -
-          source: salt://test-data/agent/scripts/test1.sh
-        -
-          name: test2
-          source: salt://test-data/agent/scripts/test2.sh
       ssl: 
         enabled: true
         dir: /etc/consul/ssl
@@ -35,6 +29,12 @@ consul:
         verify_outgoing: true
         ports:
           http: 9999
+      scripts:
+        -
+          source: salt://test-data/agent/scripts/test1.sh
+        -
+          name: test2
+          source: salt://test-data/agent/scripts/test2.sh
       services:
         -
           id: webui

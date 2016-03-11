@@ -17,7 +17,6 @@ def run():
         'service.dead' : [
             { 'name': 'consul-template' },
             { 'enable': False },
-            { 'sig': bin_path }
         ]
     }
 
