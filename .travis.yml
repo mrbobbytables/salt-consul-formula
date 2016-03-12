@@ -15,6 +15,6 @@ before_install:
   -in provision.key.enc -out provision.key -d
 - bundle install
 script:
-- bundle exec rake test:cloud
+- travis_wrapper.rb bundle exec rake test:cloud
 after_script:
 - bundle exec rake test:cloud:destroy
